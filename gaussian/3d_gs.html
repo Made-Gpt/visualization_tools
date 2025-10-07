@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLY Gaussian Ellipsoids Visualizer v1.2 (Fixed)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #222;
+            font-family: Arial, sans-serif;
+        } 
+        
+        #container {
+            position: relative;
+            width: 100vw; 
+            height: 100vh;
+        }
+        
+        #controls { 
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 300px; 
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        #fileInput {
+            background: white;
+            color: black;
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+
+        
+        .loading {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .semantic-filter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .semantic-filter input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <h3>PLY Gaussian Visualizer</h3>
+            
+            <div class="control-group">
+                <label>Upload PLY File:</label>
+                <input type="file" id="fileInput" accept=".ply" />
+                <div id="loadStatus"></div>
+            </div>
+            
+            <div class="control-group">
+                <label>Scale Factor:</label>
+                <input type="range" id="scaleFactor" min="0.1" max="5" step="0.1" value="1">
+                <span id="scaleValue">1.0</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Opacity:</label>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.7">
+                <span id="opacityValue">0.7</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Visualization Mode:</label>
+                <select id="vizMode">
+                    <option value="ellipsoids">Ellipsoids</option>
+                    <option value="points">Points</option>
+                    <option value="wireframe">Wireframe</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Point Size (Points Mode):</label>
+                <input type="range" id="pointSize" min="0.01" max="0.5" step="0.01" value="0.05">
+                <span id="pointSizeValue">0.05</span>
+            </div> 
+             
+            <div class="control-group">
+                <label>Ellipsoid Detail (Faces):</label>
+                <input type="range" id="ellipsoidDetail" min="4" max="48" step="2" value="24">
+                <span id="ellipsoidDetailValue">24</span> 
+            </div>
+
+            <div class="control-group">
+                <label>Camera Projection:</label>
+                <select id="projectionMode">
+                    <option value="perspective">Perspective</option>
+                    <option value="orthographic">Orthographic (Parallel)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Preset Views:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <button onclick="setPresetView('default')" style="font-size: 11px; padding: 4px;">Default</button>
+                    <button onclick="setPresetView('top')" style="font-size: 11px; padding: 4px;">Top</button>
+                    <button onclick="setPresetView('front')" style="font-size: 11px; padding: 4px;">Front</button>
+                    <button onclick="setPresetView('side')" style="font-size: 11px; padding: 4px;">Side</button>
+                    <button onclick="setPresetView('isometric')" style="font-size: 11px; padding: 4px;">Isometric</button>
+                    <button onclick="setPresetView('bird')" style="font-size: 11px; padding: 4px;">Bird's Eye</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Camera Speed:</label>
+                <input type="range" id="cameraSpeed" min="0.5" max="3" step="0.1" value="1">
+                <span id="cameraSpeedValue">1.0</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Semantic Filters:</label>
+                <div id="semanticFilters"></div>
+            </div> 
+        
+            <button onclick="resetView()">Reset Camera</button> 
+            <button onclick="autoFitView()">Fit to Scene</button> 
+            <button onclick="generateDemo()" style="background: #FF9800;">Generate Demo</button>
+            <button onclick="showLoadedFile()" id="showFileBtn" style="background: #2196F3; display: none;">Show Loaded File</button>
+            
+            <div style="margin-top: 15px; padding: 10px; background: rgba(100, 100, 100, 0.3); border-radius: 4px; font-size: 12px;">
+                <strong>操作指南:</strong><br>
+                1. 点击"Generate Demo"体验或"Upload PLY File"<br>
+                2. 选择投影方式：透视或正交(平行)<br>
+                3. 使用预设视角快速切换视图<br>
+                4. 调整相机速度控制交互灵敏度<br>
+                <strong>视图控制 (Mayavi风格):</strong><br>
+                • 左键拖拽：旋转视图<br>
+                • 右键拖拽：缩放视图<br>
+                • 中键/Shift+左键：平移视图<br>
+                • 滚轮：缩放 | 双击：自动适配<br>fcheckButtonStatus
+                <strong>快捷键:</strong> R(重置) F(适配) 0(默认) 1(前) 2(侧) 3(顶)
+            </div>
+        </div>
+        
+                    <div id="info">
+            <div>Mayavi风格控制: 左键旋转 | 右键缩放 | 中键平移 | 滚轮缩放 | 双击适配 | 快捷键: R/F/0-3</div>
+            <div id="stats">点击"Generate Demo"体验或"Upload PLY File"加载数据</div>
+            <div id="cameraInfo">Camera: (0.00, 0.00, 0.00) | View: Default</div>
+            <div id="semanticStats"></div>
+        </div>
+    </div>
+
+    <script>
+        // Corrected color list and semantic names (0-10, where 0 is Floor, no 11 or 12)
+        const color_list = [
+            [0.48, 0.84, 0.48],   // 0: Floor
+            [0.84, 0.48, 0.48],   // 1: Ceiling
+            [0.48, 0.48, 0.84],   // 2: Wall
+            [0.84, 0.84, 0.48],   // 3: Window
+            [0.84, 0.48, 0.84],   // 4: Chair
+            [0.63, 0.87, 0.96],   // 5: Bed
+            [0.79, 0.68, 0.85],   // 6: Sofa
+            [0.96, 0.72, 0.48],   // 7: Table
+            [0.6, 0.72, 0.48],    // 8: TVs
+            [0.48, 0.72, 0.72],   // 9: Furniture
+            [0.32, 0.54, 0.78],   // 10: Object
+        ];
+
+        const semantic_names = [
+            'Floor', 'Ceiling', 'Wall', 'Window', 'Chair', 
+            'Bed', 'Sofa', 'Table', 'TVs', 'Furniture', 
+            'Object'
+        ];
+
+        let scene, camera, renderer;
+        let gaussianGroup;
+        let gaussianData = null;
+        let semanticCounts = {};
+        let visibleSemantics = new Set();
+        let sceneCenter = new THREE.Vector3();
+        let sceneSize = 1;
+        let cameraSpeed = 1.0;
+        let currentView = 'default';
+        
+        // Simple Mayavi-style controls
+        let isMouseDown = false;
+        let mouseButton = 0;
+        let lastMouseX = 0, lastMouseY = 0;
+        let cameraTarget = new THREE.Vector3();
+        let cameraDistance = 10;
+        let sphericalCoords = { theta: 0, phi: Math.PI / 4 }; // azimuth, elevation
+
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Setup simple Mayavi-style controls
+            setupMayaviStyleControls();
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Create gaussian group
+            gaussianGroup = new THREE.Group();
+            scene.add(gaussianGroup);
+
+            // Add event listeners
+            setupSliders();
+            setupFileInput();
+            setupAdditionalControls();
+
+            // Start animation loop
+            animate();
+        }
+
+        function setupMayaviStyleControls() {
+            const canvas = renderer.domElement;
+            
+            // Mouse event handlers
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // Disable right-click menu
+            
+            // Initialize camera position
+            updateCameraPosition();
+            
+            console.log('[INFO] Simple Mayavi-style controls initialized');
+        }
+        
+        function onMouseDown(event) {
+            isMouseDown = true;
+            mouseButton = event.button; // 0: left, 1: middle, 2: right
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        }
+        
+        function onMouseMove(event) {
+            if (!isMouseDown) return;
+            
+            const deltaX = event.clientX - lastMouseX;
+            const deltaY = event.clientY - lastMouseY;
+            
+            const sensitivity = cameraSpeed * 0.01;
+            
+            switch(mouseButton) {
+                case 0: // Left button - rotate
+                    sphericalCoords.theta -= deltaX * sensitivity;
+                    sphericalCoords.phi = Math.max(0.1, Math.min(Math.PI - 0.1, sphericalCoords.phi + deltaY * sensitivity));
+                    break;
+                case 1: // Middle button - pan
+                case 0 + event.shiftKey: // Shift + left button - pan
+                    const right = new THREE.Vector3(1, 0, 0);
+                    const up = new THREE.Vector3(0, 1, 0);
+                    right.applyQuaternion(camera.quaternion);
+                    up.applyQuaternion(camera.quaternion);
+                    
+                    cameraTarget.add(right.multiplyScalar(-deltaX * sensitivity * cameraDistance * 0.1));
+                    cameraTarget.add(up.multiplyScalar(deltaY * sensitivity * cameraDistance * 0.1));
+                    break;
+                case 2: // Right button - zoom
+                    cameraDistance *= (1 + deltaY * sensitivity);
+                    cameraDistance = Math.max(0.1, Math.min(1000, cameraDistance));
+                    break;
+            }
+            
+            updateCameraPosition();
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        }
+        
+        function onMouseUp() {
+            isMouseDown = false;
+        }
+        
+        function onWheel(event) {
+            event.preventDefault();
+            const zoomSensitivity = cameraSpeed * 0.1;
+            const factor = 1 + (event.deltaY > 0 ? zoomSensitivity : -zoomSensitivity);
+            cameraDistance *= factor;
+            cameraDistance = Math.max(0.1, Math.min(1000, cameraDistance));
+            updateCameraPosition();
+        }
+        
+        function updateCameraPosition() {
+            // Convert spherical coordinates to Cartesian
+            const x = cameraDistance * Math.sin(sphericalCoords.phi) * Math.cos(sphericalCoords.theta);
+            const y = cameraDistance * Math.cos(sphericalCoords.phi);
+            const z = cameraDistance * Math.sin(sphericalCoords.phi) * Math.sin(sphericalCoords.theta);
+            
+            camera.position.set(
+                cameraTarget.x + x,
+                cameraTarget.y + y,
+                cameraTarget.z + z
+            );
+            camera.lookAt(cameraTarget);
+        }
+
+        function setupAdditionalControls() {
+            const canvas = renderer.domElement;
+            
+            // Add double-click to auto-fit
+            canvas.addEventListener('dblclick', autoFitView);
+            
+            // Add window resize handler
+            window.addEventListener('resize', onWindowResize);
+            
+            // Add keyboard shortcuts
+            window.addEventListener('keydown', onKeyDown);
+        }
+
+        function onKeyDown(event) {
+            // Keyboard shortcuts
+            switch(event.key.toLowerCase()) {
+                case 'r':
+                    resetView();
+                    break;
+                case 'f':
+                    autoFitView();
+                    break;
+                case '1':
+                    setPresetView('front');
+                    break;
+                case '2':
+                    setPresetView('side');
+                    break;
+                case '3':
+                    setPresetView('top');
+                    break;
+                case '0':
+                    setPresetView('default');
+                    break;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function resetView() {
+            // Reset to default view
+            setPresetView('default');
+        }
+        
+        function setPresetView(viewType) {
+            currentView = viewType;
+            
+            if (!gaussianData || gaussianData.length === 0) {
+                // Default position if no data loaded
+                cameraTarget.set(0, 0, 0);
+                cameraDistance = 10;
+            } else {
+                // Use calculated scene center and size
+                cameraTarget.copy(sceneCenter);
+                cameraDistance = sceneSize * 2;
+            }
+            
+            switch(viewType) {
+                case 'top':
+                    sphericalCoords.theta = 0;
+                    sphericalCoords.phi = 0.1; // Almost top-down
+                    break;
+                case 'front':
+                    sphericalCoords.theta = 0;
+                    sphericalCoords.phi = Math.PI / 2;
+                    break;
+                case 'side':
+                    sphericalCoords.theta = Math.PI / 2;
+                    sphericalCoords.phi = Math.PI / 2;
+                    break;
+                case 'isometric':
+                    sphericalCoords.theta = Math.PI / 4;
+                    sphericalCoords.phi = Math.PI / 3;
+                    break;
+                case 'bird':
+                    sphericalCoords.theta = Math.PI / 4;
+                    sphericalCoords.phi = Math.PI / 6;
+                    break;
+                default: // 'default'
+                    sphericalCoords.theta = Math.PI / 4;
+                    sphericalCoords.phi = Math.PI / 4;
+            }
+            
+            updateCameraPosition();
+            updateCameraInfo();
+            console.log(`[INFO] View set to: ${viewType}`);
+        }
+        
+        function autoFitView() {
+            if (!gaussianData || gaussianData.length === 0) return;
+            
+            // Calculate bounding box
+            calculateSceneBounds();
+            
+            // Auto-fit camera to scene
+            cameraTarget.copy(sceneCenter);
+            cameraDistance = sceneSize * 2;
+            
+            updateCameraPosition();
+            updateCameraInfo();
+            console.log('[INFO] Auto-fitted view to scene');
+        }
+
+        function setupSliders() {
+            document.getElementById('scaleFactor').addEventListener('input', (e) => {
+                document.getElementById('scaleValue').textContent = e.target.value;
+                updateGaussianScale();
+            });
+
+            document.getElementById('opacity').addEventListener('input', (e) => {
+                document.getElementById('opacityValue').textContent = e.target.value;
+                updateGaussianOpacity();
+            });
+
+            document.getElementById('pointSize').addEventListener('input', (e) => {
+                document.getElementById('pointSizeValue').textContent = e.target.value;
+                updatePointSize();
+            });
+
+            document.getElementById('ellipsoidDetail').addEventListener('input', (e) => {
+                document.getElementById('ellipsoidDetailValue').textContent = e.target.value;
+                updateEllipsoidDetail();
+            });
+
+            document.getElementById('cameraSpeed').addEventListener('input', (e) => {
+                cameraSpeed = parseFloat(e.target.value);
+                document.getElementById('cameraSpeedValue').textContent = cameraSpeed.toFixed(1);
+                updateControlsSpeed();
+            });
+
+            document.getElementById('projectionMode').addEventListener('change', updateProjectionMode);
+            document.getElementById('vizMode').addEventListener('change', updateVisualizationMode);
+        }
+
+        function setupFileInput() {
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.ply')) {
+                showStatus('请选择.ply文件！', 'error');
+                return;
+            }
+
+            // Clear any existing demo data first
+            gaussianData = null;
+            clearGaussians();
+            
+            // Hide the show file button
+            document.getElementById('showFileBtn').style.display = 'none';
+            console.log('[INFO] Show Loaded File button hidden during file load');
+
+            // Check file size
+            const maxSize = 500 * 1024 * 1024; // 500MB limit
+            if (file.size > maxSize) {
+                showStatus(`文件过大: ${(file.size / 1024 / 1024).toFixed(1)}MB (限制: 500MB)`, 'error');
+                return;
+            }
+
+            showStatus(`正在加载PLY文件 (${(file.size / 1024 / 1024).toFixed(1)}MB)...`, 'loading');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    showStatus('正在解析PLY文件结构...', 'loading');
+                    parsePLYFile(e.target.result);
+                    showStatus(`PLY文件加载成功！共 ${gaussianData ? gaussianData.length : 0} 个高斯`, 'success');
+                    
+                    // Force immediate rendering after successful load
+                    if (gaussianData && gaussianData.length > 0) {
+                        console.log('强制刷新场景渲染...');
+                        renderer.render(scene, camera);
+                        
+                        // Show the "Show Loaded File" button
+                        const showBtn = document.getElementById('showFileBtn');
+                        if (showBtn) {
+                            showBtn.style.display = 'block';
+                            showBtn.style.visibility = 'visible';
+                            console.log('[INFO] Show Loaded File button is now visible');
+                        } else {
+                            console.error('[ERROR] Show Loaded File button element not found during file load!');
+                        }
+                    }
+                } catch (error) {
+                    const errorMsg = `PLY解析失败: ${error.message}<br>
+                                   <small>文件: ${file.name} (${(file.size / 1024).toFixed(1)}KB)</small>`;
+                    showStatus(errorMsg, 'error');
+                    console.error('PLY parsing error:', error);
+                    console.error('File info:', {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: new Date(file.lastModified)
+                    });
+                }
+            };
+            
+            reader.onerror = function() {
+                showStatus('文件读取失败！请检查文件是否损坏', 'error');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parsePLYFile(arrayBuffer) {
+            const dataView = new DataView(arrayBuffer);
+            const decoder = new TextDecoder('ascii');
+            
+            // Find header end more accurately
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let headerEndIndex = -1;
+            const endHeaderBytes = new TextEncoder().encode('end_header\n');
+            
+            // Search for "end_header\n" in the binary data
+            for (let i = 0; i <= uint8Array.length - endHeaderBytes.length; i++) {
+                let match = true;
+                for (let j = 0; j < endHeaderBytes.length; j++) {
+                    if (uint8Array[i + j] !== endHeaderBytes[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    headerEndIndex = i + endHeaderBytes.length;
+                    break;
+                }
+            }
+            
+            if (headerEndIndex === -1) {
+                throw new Error('无法找到PLY文件头结束标记');
+            }
+            
+            // Parse header to get vertex count and properties
+            const headerText = decoder.decode(arrayBuffer.slice(0, headerEndIndex));
+            const lines = headerText.split('\n');
+            
+            let vertexCount = 0;
+            const properties = [];
+            let inVertexElement = false;
+            
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                
+                if (trimmedLine.startsWith('element vertex')) {
+                    vertexCount = parseInt(trimmedLine.split(' ')[2]);
+                    inVertexElement = true;
+                } else if (trimmedLine.startsWith('element') && !trimmedLine.startsWith('element vertex')) {
+                    inVertexElement = false;
+                } else if (inVertexElement && trimmedLine.startsWith('property')) {
+                    const parts = trimmedLine.split(' ');
+                    if (parts.length >= 3) {
+                        properties.push({
+                            type: parts[1],
+                            name: parts[2]
+                        });
+                    }
+                } else if (trimmedLine === 'end_header') {
+                    break;
+                }
+            }
+            
+            console.log(`PLY文件信息: ${vertexCount} 个顶点, ${properties.length} 个属性`);
+            console.log('属性列表:', properties.map(p => p.name));
+            
+            // Check for semantic-related properties
+            const semanticProps = properties.filter(p => 
+                p.name.toLowerCase().includes('semantic') || 
+                p.name.toLowerCase().includes('label') || 
+                p.name.toLowerCase().includes('class')
+            );
+            console.log('语义相关属性:', semanticProps);
+            
+            // Calculate stride based on properties
+            let stride = 0;
+            for (const prop of properties) {
+                if (prop.type === 'float' || prop.type === 'float32') {
+                    stride += 4;
+                } else if (prop.type === 'double' || prop.type === 'float64') {
+                    stride += 8;
+                } else if (prop.type === 'int' || prop.type === 'uint') {
+                    stride += 4;
+                } else if (prop.type === 'uchar' || prop.type === 'char') {
+                    stride += 1;
+                } else {
+                    // Default to 4 bytes for unknown types
+                    stride += 4;
+                }
+            }
+            
+            console.log(`计算的步长: ${stride} 字节`);
+            
+            // Verify we have enough data
+            const availableDataSize = arrayBuffer.byteLength - headerEndIndex;
+            const requiredDataSize = vertexCount * stride;
+            
+            if (availableDataSize < requiredDataSize) {
+                throw new Error(`数据不足: 需要 ${requiredDataSize} 字节，但只有 ${availableDataSize} 字节可用`);
+            }
+            
+            // Parse binary data with bounds checking
+            const data = [];
+            
+            for (let i = 0; i < vertexCount; i++) {
+                const baseOffset = headerEndIndex + i * stride;
+                
+                // Check bounds before reading
+                if (baseOffset + stride > arrayBuffer.byteLength) {
+                    console.warn(`顶点 ${i} 超出文件边界，停止解析`);
+                    break;
+                }
+                
+                // Create property map for flexible parsing
+                const vertex = {};
+                let currentOffset = baseOffset;
+                
+                for (const prop of properties) {
+                    try {
+                        if (prop.type === 'float' || prop.type === 'float32') {
+                            vertex[prop.name] = dataView.getFloat32(currentOffset, true);
+                            currentOffset += 4;
+                        } else if (prop.type === 'double' || prop.type === 'float64') {
+                            vertex[prop.name] = dataView.getFloat64(currentOffset, true);
+                            currentOffset += 8;
+                        } else if (prop.type === 'int') {
+                            vertex[prop.name] = dataView.getInt32(currentOffset, true);
+                            currentOffset += 4;
+                        } else if (prop.type === 'uint') {
+                            vertex[prop.name] = dataView.getUint32(currentOffset, true);
+                            currentOffset += 4;
+                        } else if (prop.type === 'uchar') {
+                            vertex[prop.name] = dataView.getUint8(currentOffset);
+                            currentOffset += 1;
+                        } else if (prop.type === 'char') {
+                            vertex[prop.name] = dataView.getInt8(currentOffset);
+                            currentOffset += 1;
+                        } else {
+                            // Skip unknown types
+                            vertex[prop.name] = 0;
+                            currentOffset += 4;
+                        }
+                    } catch (error) {
+                        console.error(`解析属性 ${prop.name} 失败 (顶点 ${i}, 偏移 ${currentOffset}):`, error);
+                        vertex[prop.name] = 0; // Default value
+                    }
+                }
+                
+                // Ensure required properties exist with defaults
+                const requiredProps = ['x', 'y', 'z', 'opacity', 'f_dc_0', 'f_dc_1', 'f_dc_2', 
+                                     'scale_0', 'scale_1', 'scale_2', 'rot_0', 'rot_1', 'rot_2', 'rot_3'];
+                
+                for (const propName of requiredProps) {
+                    if (!(propName in vertex)) {
+                        vertex[propName] = propName.startsWith('rot_') ? (propName === 'rot_3' ? 1 : 0) : 0;
+                    }
+                }
+                
+                data.push(vertex);
+            }
+            
+            console.log(`成功解析 ${data.length} 个顶点`);
+            
+            if (data.length === 0) {
+                throw new Error('没有成功解析到任何顶点数据');
+            }
+            
+            gaussianData = data;
+            createGaussiansFromPLY();
+        }
+
+        function createGaussiansFromPLY() {
+            // Clear existing gaussians
+            clearGaussians();
+
+            if (!gaussianData) return;
+
+            // Count semantics by color
+            semanticCounts = {};
+            
+            gaussianData.forEach((gaussian, index) => {
+                let bestSemantic = 0;
+                let color = [1, 1, 1]; // default white
+                
+                // Debug: Log first few gaussians to see what properties they have
+                if (index < 3) {
+                    console.log(`Gaussian ${index} properties:`, Object.keys(gaussian));
+                    console.log(`Gaussian ${index} values:`, gaussian);
+                }
+                
+                // First, check if PLY has semantic labels directly (semantic, label, class, etc.)
+                if (gaussian.semantic !== undefined) {
+                    bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.semantic)));
+                    if (index < 3) console.log(`使用semantic属性: ${gaussian.semantic} -> ${bestSemantic}`);
+                } else if (gaussian.label !== undefined) {
+                    bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.label)));
+                    if (index < 3) console.log(`使用label属性: ${gaussian.label} -> ${bestSemantic}`);
+                } else if (gaussian.class !== undefined) {
+                    bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.class)));
+                    if (index < 3) console.log(`使用class属性: ${gaussian.class} -> ${bestSemantic}`);
+                } else {
+                    // Process colors using your Python method: abs(colors) / sqrt(4*pi), then clip to [0,1]
+                    const sqrt_4pi = Math.sqrt(4 * Math.PI);
+                    color = [
+                        Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_0) / sqrt_4pi)),
+                        Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_1) / sqrt_4pi)),
+                        Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_2) / sqrt_4pi))
+                    ];
+                    
+                    // Apply HSV enhancement (brightness_factor=1.5)
+                    color = enhanceColorsHSV(color, 1.5, 1.0);
+
+                    // Find closest semantic class based on enhanced color
+                    let minDistance = Infinity;
+                    
+                    for (let i = 0; i < color_list.length; i++) {
+                        const dist = Math.sqrt(
+                            Math.pow(color[0] - color_list[i][0], 2) +
+                            Math.pow(color[1] - color_list[i][1], 2) +
+                            Math.pow(color[2] - color_list[i][2], 2)
+                        );
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            bestSemantic = i;
+                        }
+                    }
+                    
+                    if (index < 3) {
+                        console.log(`颜色分类 ${index}: 原始SH=[${gaussian.f_dc_0}, ${gaussian.f_dc_1}, ${gaussian.f_dc_2}]`);
+                        console.log(`处理后颜色=[${color[0]}, ${color[1]}, ${color[2]}] -> 语义类别${bestSemantic}:${semantic_names[bestSemantic]}`);
+                    }
+                }
+                
+                // Use semantic color if no computed color available
+                if (!color || (color[0] === 1 && color[1] === 1 && color[2] === 1)) {
+                    color = color_list[bestSemantic];
+                }
+
+                semanticCounts[bestSemantic] = (semanticCounts[bestSemantic] || 0) + 1;
+                createGaussianFromData(gaussian, bestSemantic, color);
+            });
+
+            console.log('语义统计:', semanticCounts);
+            console.log('检测到的语义类别:', Object.keys(semanticCounts).map(k => `${k}:${semantic_names[k]}`));
+
+            // Initialize all semantics as visible
+            visibleSemantics = new Set(Object.keys(semanticCounts).map(k => parseInt(k)));
+            
+            updateSemanticFilters();
+            updateStats();
+            calculateSceneBounds();
+            autoFitView();
+            
+            // Ensure rendering after data creation with multiple attempts
+            console.log('高斯数据创建完成，多次强制渲染...');
+            
+            // Immediate render
+            renderer.render(scene, camera);
+            
+            // Delayed renders to ensure display
+            setTimeout(() => {
+                renderer.render(scene, camera);
+                console.log('延时渲染 1 完成');
+            }, 10);
+            
+            setTimeout(() => {
+                renderer.render(scene, camera);
+                console.log('延时渲染 2 完成');
+            }, 100);
+            
+            setTimeout(() => {
+                renderer.render(scene, camera);
+                console.log('延时渲染 3 完成');
+                
+                // Ensure "Show Loaded File" button is visible after data is processed
+                if (gaussianData && gaussianData.length > 0) {
+                    document.getElementById('showFileBtn').style.display = 'block';
+                    console.log('[INFO] Show Loaded File button ensured visible after processing');
+                }
+            }, 500);
+        }
+
+        // HSV color enhancement function (matching your Python code)
+        function enhanceColorsHSV(rgbColor, brightnessFactor = 1.5, saturationFactor = 1.0) {
+            const [r, g, b] = rgbColor;
+            
+            // Convert RGB to HSV
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const delta = max - min;
+            
+            // Calculate V (Value/Brightness)
+            let v = max;
+            
+            // Calculate S (Saturation)
+            let s = max === 0 ? 0 : delta / max;
+            
+            // Calculate H (Hue)
+            let h = 0;
+            if (delta !== 0) {
+                if (max === r) {
+                    h = ((g - b) / delta) % 6;
+                } else if (max === g) {
+                    h = (b - r) / delta + 2;
+                } else {
+                    h = (r - g) / delta + 4;
+                }
+                h /= 6;
+            }
+            
+            // Enhance saturation and brightness
+            s = Math.min(s * saturationFactor, 1.0);
+            v = Math.min(v * brightnessFactor, 1.0);
+            
+            // Convert HSV back to RGB
+            const c = v * s;
+            const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
+            const m = v - c;
+            
+            let rPrime, gPrime, bPrime;
+            
+            if (h < 1/6) {
+                [rPrime, gPrime, bPrime] = [c, x, 0];
+            } else if (h < 2/6) {
+                [rPrime, gPrime, bPrime] = [x, c, 0];
+            } else if (h < 3/6) {
+                [rPrime, gPrime, bPrime] = [0, c, x];
+            } else if (h < 4/6) {
+                [rPrime, gPrime, bPrime] = [0, x, c];
+            } else if (h < 5/6) {
+                [rPrime, gPrime, bPrime] = [x, 0, c];
+            } else {
+                [rPrime, gPrime, bPrime] = [c, 0, x];
+            }
+            
+            return [rPrime + m, gPrime + m, bPrime + m];
+        }
+
+        function createGaussianFromData(gaussian, semantic, actualColor) {
+            // Use actual computed color instead of semantic color for better visualization
+            const color = actualColor || color_list[semantic];
+            
+            // Convert SH coefficients to color if not provided (using correct Python method)
+            let displayColor = color;
+            if (!actualColor && gaussian.f_dc_0 !== undefined) {
+                const sqrt_4pi = Math.sqrt(4 * Math.PI);
+                displayColor = [
+                    Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_0) / sqrt_4pi)),
+                    Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_1) / sqrt_4pi)),
+                    Math.min(1, Math.max(0, Math.abs(gaussian.f_dc_2) / sqrt_4pi))
+                ];
+                // Apply HSV enhancement
+                displayColor = enhanceColorsHSV(displayColor, 1.5, 1.0);
+            }
+            
+            // Create geometry based on mode
+            let geometry;
+            const mode = document.getElementById('vizMode').value;
+            
+            if (mode === 'points') {
+                geometry = new THREE.SphereGeometry(parseFloat(document.getElementById('pointSize').value), 8, 6);
+            } else {
+                const ellipsoidDetail = parseInt(document.getElementById('ellipsoidDetail').value) || 16;
+                geometry = new THREE.SphereGeometry(1, ellipsoidDetail, Math.max(6, ellipsoidDetail / 2));
+            }
+            
+            // Convert log-space opacity to actual opacity (opacity = 1 / (1 + exp(-logit_opacity)))
+            let opacity = parseFloat(document.getElementById('opacity').value);
+            if (gaussian.opacity !== undefined) {
+                const actualOpacity = 1.0 / (1.0 + Math.exp(-gaussian.opacity));
+                opacity = Math.max(0.1, Math.min(0.9, actualOpacity)); // clamp to reasonable range
+            }
+            
+            // Create material
+            let material;
+            if (mode === 'wireframe') {
+                material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(displayColor[0], displayColor[1], displayColor[2]),
+                    wireframe: true,
+                    transparent: true,
+                    opacity: opacity
+                });
+            } else {
+                material = new THREE.MeshLambertMaterial({
+                    color: new THREE.Color(displayColor[0], displayColor[1], displayColor[2]),
+                    transparent: true,
+                    opacity: opacity
+                });
+            }
+
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            // Convert coordinate system: xyz[:, [0, 2, 1]] * -1
+            const convertedX = -gaussian.x; 
+            const convertedY = -gaussian.z; 
+            const convertedZ = -gaussian.y;
+            // const convertedX = gaussian.x;
+            // const convertedY = gaussian.y; 
+            // const convertedZ = gaussian.z;
+            
+            // Set position with coordinate conversion
+            mesh.position.set(convertedX, convertedY, convertedZ);
+            
+            // Set rotation (quaternion)
+            mesh.quaternion.set(gaussian.rot_0, gaussian.rot_1, gaussian.rot_2, gaussian.rot_3);
+            mesh.quaternion.normalize();
+            
+            // Set scale (convert from log space)
+            const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
+            const scale = [
+                Math.exp(gaussian.scale_0),
+                Math.exp(gaussian.scale_1), 
+                Math.exp(gaussian.scale_2)
+            ];
+            mesh.scale.set(scale[0] * scaleFactor, scale[1] * scaleFactor, scale[2] * scaleFactor);
+
+            // Store original properties
+            mesh.userData = {
+                originalScale: scale,
+                semantic: semantic,
+                gaussian: gaussian,
+                originalColor: displayColor,
+                opacity: opacity
+            };
+
+            // Set visibility based on semantic filter
+            mesh.visible = visibleSemantics.has(semantic);
+
+            gaussianGroup.add(mesh);
+        }
+
+        function clearGaussians() {
+            if (!gaussianGroup || !gaussianGroup.children) {
+                console.warn('[WARN] gaussianGroup not properly initialized');
+                return;
+            }
+            
+            while (gaussianGroup.children.length > 0) {
+                const child = gaussianGroup.children[0];
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+                gaussianGroup.remove(child);
+            }
+        }
+
+        function updateSemanticFilters() {
+            const container = document.getElementById('semanticFilters');
+            container.innerHTML = '';
+            
+            Object.keys(semanticCounts).forEach(semantic => {
+                const sem = parseInt(semantic);
+                // Include all semantic classes (0 is Floor, not background)
+                
+                const div = document.createElement('div');
+                div.className = 'semantic-filter';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = visibleSemantics.has(sem);
+                checkbox.addEventListener('change', () => toggleSemantic(sem));
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.style.width = '12px';
+                colorBox.style.height = '12px';
+                colorBox.style.backgroundColor = `rgb(${color_list[sem].map(c => Math.round(c * 255)).join(',')})`;
+                colorBox.style.marginRight = '5px';
+                
+                const label = document.createElement('span');
+                label.textContent = `${semantic_names[sem]} (${semanticCounts[sem]})`;
+                
+                div.appendChild(checkbox);
+                div.appendChild(colorBox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
+        function toggleSemantic(semantic) {
+            if (visibleSemantics.has(semantic)) {
+                visibleSemantics.delete(semantic);
+            } else {
+                visibleSemantics.add(semantic);
+            }
+            
+            // Update visibility of meshes
+            gaussianGroup.children.forEach(mesh => {
+                if (mesh.userData.semantic === semantic) {
+                    mesh.visible = visibleSemantics.has(semantic);
+                }
+            });
+            
+            updateStats();
+        }
+
+        function updateGaussianScale() {
+            const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
+            gaussianGroup.children.forEach(mesh => {
+                if (mesh.userData.originalScale) {
+                    const scale = mesh.userData.originalScale;
+                    mesh.scale.set(scale[0] * scaleFactor, scale[1] * scaleFactor, scale[2] * scaleFactor);
+                }
+            });
+        }
+
+        function updateGaussianOpacity() {
+            const opacity = parseFloat(document.getElementById('opacity').value);
+            gaussianGroup.children.forEach(mesh => {
+                if (mesh.material) {
+                    mesh.material.opacity = opacity;
+                }
+            });
+        }
+
+        function updatePointSize() {
+            const size = parseFloat(document.getElementById('pointSize').value);
+            const mode = document.getElementById('vizMode').value;
+            
+            if (mode === 'points') {
+                gaussianGroup.children.forEach(mesh => {
+                    if (mesh.geometry) {
+                        mesh.geometry.dispose();
+                        mesh.geometry = new THREE.SphereGeometry(size, 8, 6);
+                    }
+                });
+            }
+        }
+
+        function updateVisualizationMode() {
+            if (!gaussianData) return;
+            
+            // Recreate all gaussians with new mode
+            createGaussiansFromPLY();
+        }
+
+        function updateControlsSpeed() {
+            // Camera speed is now used directly in mouse movement calculations
+            console.log(`[INFO] Camera speed updated to: ${cameraSpeed}`);
+        }
+
+        function updateProjectionMode() {
+            const mode = document.getElementById('projectionMode').value;
+            
+            if (mode === 'orthographic') {
+                // Switch to orthographic camera
+                const aspect = window.innerWidth / window.innerHeight;
+                const frustumSize = sceneSize * 2;
+                
+                const oldPosition = camera.position.clone();
+                
+                camera = new THREE.OrthographicCamera(
+                    frustumSize * aspect / -2, frustumSize * aspect / 2,
+                    frustumSize / 2, frustumSize / -2,
+                    0.1, 1000
+                );
+                
+                // Copy position from previous camera
+                camera.position.copy(oldPosition);
+                camera.lookAt(cameraTarget);
+                
+                console.log('[INFO] Switched to orthographic projection');
+            } else {
+                // Switch to perspective camera
+                const oldPosition = camera.position.clone();
+                
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.copy(oldPosition);
+                camera.lookAt(cameraTarget);
+                
+                console.log('[INFO] Switched to perspective projection');
+            }
+            
+            updateCameraInfo();
+        }
+
+        function calculateSceneBounds() {
+            if (!gaussianData || gaussianData.length === 0) return;
+            
+            // Calculate bounding box with coordinate conversion
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity; 
+            let minZ = Infinity, maxZ = -Infinity;
+            
+            gaussianData.forEach(gaussian => {
+                // Apply coordinate conversion: xyz[:, [0, 2, 1]] * -1
+                const convertedX = -gaussian.x;
+                const convertedY = -gaussian.z;
+                const convertedZ = -gaussian.y;
+                
+                minX = Math.min(minX, convertedX);
+                maxX = Math.max(maxX, convertedX);
+                minY = Math.min(minY, convertedY);
+                maxY = Math.max(maxY, convertedY);
+                minZ = Math.min(minZ, convertedZ);
+                maxZ = Math.max(maxZ, convertedZ);
+            });
+            
+            sceneCenter.set(
+                (minX + maxX) / 2,
+                (minY + maxY) / 2,
+                (minZ + maxZ) / 2
+            );
+            
+            sceneSize = Math.max(maxX - minX, maxY - minY, maxZ - minZ);
+            
+            console.log(`[INFO] Scene bounds calculated: center(${sceneCenter.x.toFixed(2)}, ${sceneCenter.y.toFixed(2)}, ${sceneCenter.z.toFixed(2)}), size=${sceneSize.toFixed(2)}`);
+        }
+
+        function updateStats() {
+            if (!gaussianData) return;
+            
+            const totalVisible = gaussianGroup.children.filter(child => child.visible).length;
+            const total = gaussianData.length;
+            
+            document.getElementById('stats').innerHTML = `
+                显示: ${totalVisible} / ${total} 个高斯椭球
+            `;
+            
+            const semanticStatsDiv = document.getElementById('semanticStats');
+            const visibleStats = Object.keys(semanticCounts)
+                .filter(sem => visibleSemantics.has(parseInt(sem)))
+                .map(sem => `${semantic_names[sem]}: ${semanticCounts[sem]}`)
+                .join(' | ');
+            
+            semanticStatsDiv.textContent = visibleStats;
+        }
+
+
+
+        function generateDemo() {
+            // Clear previous data first to avoid confusion
+            gaussianData = null;
+            clearGaussians();
+            
+            // Hide the button initially
+            document.getElementById('showFileBtn').style.display = 'none';
+            console.log('[INFO] Generating demo data...');
+            
+            // Generate demo data similar to original function
+            gaussianData = [];
+            for (let i = 0; i < 100; i++) {
+                const semantic = Math.floor(Math.random() * color_list.length); // Include 0-10 only
+                const color = color_list[semantic];
+                const sqrt_pi = Math.sqrt(Math.PI);
+                
+                gaussianData.push({
+                    x: (Math.random() - 0.5) * 20,
+                    y: (Math.random() - 0.5) * 20,
+                    z: (Math.random() - 0.5) * 20,
+                    opacity: Math.random() * 2 - 1, // logit space
+                    f_dc_0: color[0] * sqrt_pi,
+                    f_dc_1: color[1] * sqrt_pi,
+                    f_dc_2: color[2] * sqrt_pi,
+                    scale_0: Math.log(Math.random() * 2 + 0.5),
+                    scale_1: Math.log(Math.random() * 2 + 0.5),
+                    scale_2: Math.log(Math.random() * 2 + 0.5),
+                    rot_0: Math.random() * 2 - 1,
+                    rot_1: Math.random() * 2 - 1,
+                    rot_2: Math.random() * 2 - 1, 
+                    rot_3: Math.random() * 2 - 1 
+                }); 
+            } 
+            
+            createGaussiansFromPLY();
+            showStatus('演示场景已生成', 'success');
+            
+            // Show the "Show Loaded File" button for demo data too
+            const showBtn = document.getElementById('showFileBtn');
+            if (showBtn) {
+                showBtn.style.display = 'block';
+                showBtn.style.visibility = 'visible';
+                console.log('[INFO] Show Loaded File button displayed for demo data');
+            } else {
+                console.error('[ERROR] Show Loaded File button element not found!');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('loadStatus');
+            statusDiv.innerHTML = message;
+            statusDiv.className = type;
+            
+            // Also log to console for debugging
+            if (type === 'error') {
+                console.error('Status:', message);
+            } else if (type === 'loading') {
+                console.log('Status:', message);
+            } else {
+                console.info('Status:', message);
+            }
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 5000); // 延长显示时间
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update camera position display
+            updateCameraInfo();
+
+            renderer.render(scene, camera);
+        }
+
+        // Function to update camera position display
+        function updateCameraInfo() {
+            const pos = camera.position;
+            const distance = pos.distanceTo(cameraTarget);
+            
+            const x = pos.x.toFixed(2);
+            const y = pos.y.toFixed(2);
+            const z = pos.z.toFixed(2);
+            
+            const projectionMode = document.getElementById('projectionMode').value;
+            
+            document.getElementById('cameraInfo').innerHTML = `
+                Camera: (${x}, ${y}, ${z}) | Distance: ${distance.toFixed(2)}<br>
+                Target: (${cameraTarget.x.toFixed(2)}, ${cameraTarget.y.toFixed(2)}, ${cameraTarget.z.toFixed(2)})<br>
+                View: ${currentView} | Projection: ${projectionMode}
+            `;
+        }
+
+        // Function to show loaded file (force display)
+        function showLoadedFile() {
+            if (gaussianData && gaussianData.length > 0) {
+                console.log('重新显示已加载的文件...');
+                
+                // Clear and recreate gaussians
+                clearGaussians();
+                createGaussiansFromPLY();
+                
+                // Force multiple renders to ensure display
+                setTimeout(() => {
+                    renderer.render(scene, camera);
+                    console.log('第一次强制渲染完成');
+                }, 10);
+                
+                setTimeout(() => {
+                    renderer.render(scene, camera);
+                    console.log('第二次强制渲染完成');
+                }, 50);
+                
+                setTimeout(() => {
+                    renderer.render(scene, camera);
+                    console.log('第三次强制渲染完成');
+                }, 100);
+                
+                showStatus(`重新显示文件，共 ${gaussianData.length} 个高斯椭球`, 'success');
+            } else {
+                showStatus('没有加载的文件可以显示', 'error');
+            }
+        }
+
+        // Function to update ellipsoid detail
+        function updateEllipsoidDetail() {
+            // Regenerate gaussians with new detail level
+            if (gaussianData && gaussianData.length > 0) {
+                createGaussiansFromPLY();
+                showStatus('椭球面数已更新', 'success');
+            }
+        }
+
+        // Function to check button status (for debugging)
+        function checkButtonStatus() {
+            const showBtn = document.getElementById('showFileBtn');
+            if (showBtn) {
+                console.log('[DEBUG] Button found. Display:', showBtn.style.display, 'Visibility:', showBtn.style.visibility);
+                return true;
+            } else {
+                console.error('[ERROR] Button not found in DOM!');
+                return false;
+            }
+        } 
+
+        // Initialize the scene
+        init();
+        
+        // Check button status after initialization
+        setTimeout(() => {
+            checkButtonStatus();
+        }, 100);
+    </script>
+</body>
+</html>
+ 

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Gaussian Ellipse Generator - Academic Paper Quality</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #container {
+            width: 1600px;
+            height: 1200px; 
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+         
+        #controls {
+            max-width: 1600px;
+            margin: 0 auto 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .control-row label {
+            width: 130px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .control-row input[type="range"] {
+            flex: 1;
+            max-width: 200px;
+            accent-color: #007bff;
+        }
+        
+        .control-row span {
+            width: 70px;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .color-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 35px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .color-text-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            width: 120px;
+            background: white;
+        }
+        
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        #download {
+            background: #28a745;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        #download:hover {
+            background: #1e7e34;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .preset-btn {
+            background: #6c757d;
+            padding: 10px 18px;
+            font-size: 13px;
+        }
+        
+        .preset-btn:hover {
+            background: #545b62;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .focus-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .focus-canvas {
+            max-width: 90vw;
+            max-height: 90vh;
+            border: 2px solid #fff;
+            border-radius: 10px;
+        }
+        
+        .keyboard-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h2>🎯 2D Gaussian Ellipse Generator - Academic Paper Quality</h2>
+        
+        <div class="control-row">
+            <label>Scale X (Width):</label>
+            <input type="range" id="scaleX" min="50" max="350" step="10" value="150">
+            <span id="scaleXValue">150</span>
+            <input type="number" id="scaleXInput" min="50" max="350" value="150" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row">
+            <label>Scale Y (Height):</label>
+            <input type="range" id="scaleY" min="50" max="350" step="10" value="100">
+            <span id="scaleYValue">100</span>
+            <input type="number" id="scaleYInput" min="50" max="350" value="100" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row">
+            <label>Rotation:</label>
+            <input type="range" id="rotation" min="0" max="360" step="5" value="30">
+            <span id="rotationValue">30°</span>
+            <input type="number" id="rotationInput" min="0" max="360" value="30" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row">
+            <label>Core Opacity:</label>
+            <input type="range" id="opacity" min="0.1" max="1.0" step="0.05" value="0.8">
+            <span id="opacityValue">0.8</span>
+            <input type="number" id="opacityInput" min="0.1" max="1.0" step="0.01" value="0.8" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row">
+            <label>Edge Blur Sigma:</label>
+            <input type="range" id="blur" min="0.05" max="3.0" step="0.1" value="1.0">
+            <span id="blurValue">1.0</span>
+            <input type="number" id="blurInput" min="0.05" max="3.0" step="0.01" value="1.0" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row"> 
+            <label>Canvas Fill Ratio:</label>
+            <input type="range" id="fillRatio" min="0.1" max="0.95" step="0.05" value="0.6">
+            <span id="fillRatioValue">0.6</span> 
+            <input type="number" id="fillRatioInput" min="0.1" max="0.95" step="0.01" value="0.6" style="width: 80px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div class="control-row">
+            <label>Color (Hex):</label>
+            <div class="color-input-container">
+                <div id="colorPreview" class="color-preview"></div>
+                <input type="text" id="colorInput" class="color-text-input" value="4A90E2" placeholder="FFCC99">
+            </div>
+        </div>
+        
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="setPreset('academic')">📘 Academic Blue</button>
+            <button class="preset-btn" onclick="setPreset('scientific')">🔬 Scientific Red</button>
+            <button class="preset-btn" onclick="setPreset('nature')">🌿 Nature Green</button>
+            <button class="preset-btn" onclick="setPreset('tech')">🚀 Tech Purple</button>
+            <button class="preset-btn" onclick="setPreset('sharp')">⚡ Sharp Focus</button>
+            <button class="preset-btn" onclick="setPreset('soft')">🌙 Soft Blur</button>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <button id="download">📥 Download High-Quality PNG</button>
+            <button onclick="resetToDefault()">🔄 Reset to Default</button>
+        </div>
+        
+        <div class="info-box">
+            <h3>✨ Features:</h3>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><strong>True 2D Gaussian Falloff:</strong> Mathematically accurate edge-blur effect</li>
+                <li><strong>Hex Color Input:</strong> Direct hex color code input (e.g., FFCC99, CCE5FF)</li>
+                <li><strong>High Resolution Canvas:</strong> 1600×1200 with anti-aliasing for crisp output</li>
+                <li><strong>Academic Presets:</strong> Pre-configured styles for different publication types</li>
+                <li><strong>Keyboard Controls:</strong> Use arrow keys + modifiers for precise adjustments</li>
+                <li><strong>Direct Number Input:</strong> Type exact values in number input boxes</li>
+                <li><strong>Auto-Scaling:</strong> Ellipse automatically scales to fill 60% canvas ratio</li>
+            </ul> 
+        </div>
+        
+        <div class="info-box" style="background: #e8f5e8; border-left-color: #4caf50;">
+            <h3>⌨️ Keyboard Shortcuts:</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: monospace; font-size: 13px;">
+                <div><strong>Arrow Keys:</strong> Width/Height ±10</div>
+                <div><strong>Shift + Arrows:</strong> Width/Height ±1</div>
+                <div><strong>Ctrl + ←/→:</strong> Rotation ±5°</div>
+                <div><strong>Ctrl + Shift + ←/→:</strong> Rotation ±1°</div>
+                <div><strong>Alt + ↑/↓:</strong> Opacity ±0.05</div>
+                <div><strong>Alt + Shift + ↑/↓:</strong> Opacity ±0.01</div>
+                <div><strong>Ctrl + ↑/↓:</strong> Blur ±0.1</div>
+                <div><strong>Ctrl + Shift + ↑/↓:</strong> Blur ±0.05</div>
+                <div><strong>Ctrl + Alt + ↑/↓:</strong> Fill Ratio ±0.05</div>
+                <div><strong>Ctrl + Alt + Shift + ↑/↓:</strong> Fill Ratio ±0.01</div>
+                <div><strong>R:</strong> Reset to Default</div>
+                <div><strong>D:</strong> Download Image</div>
+                <div><strong>1-6:</strong> Apply Presets</div>
+                <div><strong>Tab:</strong> Toggle Focus Mode</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="container">
+        <canvas id="canvas" width="1600" height="1200"></canvas> 
+    </div>
+    
+    <!-- Focus Mode Overlay -->
+    <div id="focusMode" class="focus-mode">
+        <canvas id="focusCanvas" class="focus-canvas" width="1600" height="1200"></canvas>
+    </div>
+    
+    <!-- Keyboard Indicator -->
+    <div id="keyboardIndicator" class="keyboard-indicator">
+        Keyboard mode active - See shortcuts above
+    </div>
+
+    <script> 
+        let canvas, ctx, focusCanvas, focusCtx;
+        let keyboardMode = false;
+        let focusMode = false;
+        
+        function init() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            
+            focusCanvas = document.getElementById('focusCanvas');
+            focusCtx = focusCanvas.getContext('2d');
+            
+            // Setup controls
+            setupControls();
+            setupKeyboardControls();
+            
+            // Initial render
+            updateEllipse();
+        }
+        
+        function hexToRgb(hex) {
+            // Remove # if present
+            hex = hex.replace('#', '');
+            
+            // Ensure it's 6 characters
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            return { r, g, b };
+        }
+        
+        function isValidHex(hex) {
+            const cleanHex = hex.replace('#', '');
+            return /^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{3}$/.test(cleanHex);
+        }
+        
+        function updateColorPreview() {
+            const colorInput = document.getElementById('colorInput');
+            const colorPreview = document.getElementById('colorPreview');
+            const hex = colorInput.value.trim();
+            
+            if (isValidHex(hex)) {
+                colorPreview.style.backgroundColor = '#' + hex;
+                colorInput.style.borderColor = '#ddd';
+            } else {
+                colorInput.style.borderColor = '#e74c3c';
+            }
+        }
+        
+        function drawGaussianEllipse() {
+            const scaleX = parseFloat(document.getElementById('scaleX').value);
+            const scaleY = parseFloat(document.getElementById('scaleY').value);
+            const rotation = parseFloat(document.getElementById('rotation').value) * Math.PI / 180;
+            const opacity = parseFloat(document.getElementById('opacity').value);
+            const blurSigma = parseFloat(document.getElementById('blur').value);
+            const colorHex = document.getElementById('colorInput').value.trim();
+            
+            if (!isValidHex(colorHex)) return;
+            
+            const rgb = hexToRgb(colorHex);
+            
+            // Draw on both canvases
+            drawOnCanvas(ctx, canvas, rgb, scaleX, scaleY, rotation, opacity, blurSigma);
+            if (focusMode) {
+                drawOnCanvas(focusCtx, focusCanvas, rgb, scaleX, scaleY, rotation, opacity, blurSigma);
+            }
+        }
+        
+        function drawOnCanvas(context, canvasElement, rgb, scaleX, scaleY, rotation, opacity, blurSigma) {
+            // Clear canvas with transparent background
+            context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            const centerX = canvasElement.width / 2;
+            const centerY = canvasElement.height / 2;
+            
+            // Get fill ratio and calculate auto-scaling
+            const fillRatio = parseFloat(document.getElementById('fillRatio').value);
+            const autoScale = calculateAutoScale(canvasElement.width, canvasElement.height, scaleX, scaleY, fillRatio, blurSigma);
+            
+            // Apply auto-scaling to the ellipse dimensions
+            const scaledX = scaleX * autoScale;
+            const scaledY = scaleY * autoScale;
+            const scaledBlur = blurSigma * autoScale;
+            
+            // Create image data for pixel-level manipulation
+            const imageData = context.createImageData(canvasElement.width, canvasElement.height);
+            const data = imageData.data;
+            
+            // Pre-calculate rotation matrix
+            const cos = Math.cos(-rotation);
+            const sin = Math.sin(-rotation);
+            
+            for (let x = 0; x < canvasElement.width; x++) {
+                for (let y = 0; y < canvasElement.height; y++) {
+                    // Translate to center
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    
+                    // Apply rotation
+                    const rotX = dx * cos - dy * sin;
+                    const rotY = dx * sin + dy * cos;
+                    
+                    // Calculate elliptical distance with auto-scaled dimensions
+                    const ellipseX = rotX / scaledX;
+                    const ellipseY = rotY / scaledY;
+                    const distance = Math.sqrt(ellipseX * ellipseX + ellipseY * ellipseY);
+                    
+                    // Calculate gaussian falloff
+                    let alpha = 0;
+                    if (distance <= 1.0) {
+                        // Inside the core ellipse
+                        alpha = opacity;
+                    } else {
+                        // Outside - gaussian falloff with scaled blur
+                        const edgeDistance = distance - 1.0;
+                        alpha = opacity * Math.exp(-(edgeDistance * edgeDistance) / (2 * scaledBlur * scaledBlur));
+                    }
+                    
+                    // Set pixel
+                    const pixelIndex = (y * canvasElement.width + x) * 4;
+                    data[pixelIndex] = rgb.r;         // R
+                    data[pixelIndex + 1] = rgb.g;     // G
+                    data[pixelIndex + 2] = rgb.b;     // B
+                    data[pixelIndex + 3] = alpha * 255; // A
+                }
+            }
+            
+            context.putImageData(imageData, 0, 0);
+        }
+        
+        function calculateAutoScale(canvasWidth, canvasHeight, scaleX, scaleY, fillRatio, blurSigma) {
+            // Calculate the maximum extent of the ellipse including blur falloff
+            // We consider the blur extends about 3*sigma beyond the core ellipse
+            const blurExtent = 3 * blurSigma;
+            const totalExtentX = scaleX + scaleX * blurExtent;
+            const totalExtentY = scaleY + scaleY * blurExtent;
+            
+            // Calculate the maximum dimension that would fit in the canvas
+            const availableX = canvasWidth * fillRatio / 2;
+            const availableY = canvasHeight * fillRatio / 2;
+            
+            // Calculate scaling factors for both dimensions
+            const scaleFactorX = availableX / totalExtentX;
+            const scaleFactorY = availableY / totalExtentY;
+            
+            // Use the smaller scaling factor to ensure the ellipse fits in both dimensions
+            return Math.min(scaleFactorX, scaleFactorY);
+        }
+        
+        function updateEllipse() {
+            updateColorPreview();
+            drawGaussianEllipse();
+        }
+        
+        function setupControls() {
+            const controls = ['scaleX', 'scaleY', 'rotation', 'opacity', 'blur', 'fillRatio'];
+            
+            controls.forEach(id => {
+                const slider = document.getElementById(id);
+                const valueSpan = document.getElementById(id + 'Value');
+                const numberInput = document.getElementById(id + 'Input');
+                
+                // Slider input handler
+                slider.addEventListener('input', () => {
+                    let value = slider.value;
+                    if (id === 'rotation') {
+                        value += '°';
+                    }
+                    valueSpan.textContent = value;
+                    numberInput.value = slider.value;
+                    updateEllipse();
+                });
+                
+                // Number input handler
+                numberInput.addEventListener('input', () => {
+                    const value = parseFloat(numberInput.value);
+                    const min = parseFloat(numberInput.min);
+                    const max = parseFloat(numberInput.max);
+                    
+                    if (!isNaN(value) && value >= min && value <= max) {
+                        slider.value = value;
+                        let displayValue = value;
+                        if (id === 'rotation') {
+                            displayValue += '°';
+                        }
+                        valueSpan.textContent = displayValue;
+                        updateEllipse();
+                    }
+                });
+                
+                // Sync on blur to handle invalid inputs
+                numberInput.addEventListener('blur', () => {
+                    const value = parseFloat(numberInput.value);
+                    const min = parseFloat(numberInput.min);
+                    const max = parseFloat(numberInput.max);
+                    
+                    if (isNaN(value) || value < min || value > max) {
+                        numberInput.value = slider.value;
+                    }
+                });
+            });
+            
+            const colorInput = document.getElementById('colorInput');
+            colorInput.addEventListener('input', updateEllipse);
+            colorInput.addEventListener('keyup', updateEllipse);
+            
+            document.getElementById('download').addEventListener('click', downloadImage);
+        }
+        
+        function setupKeyboardControls() {
+            document.addEventListener('keydown', (e) => {
+                // Skip if user is typing in input field
+                if (e.target.tagName === 'INPUT') {
+                    return;
+                }
+                
+                // Prevent default behavior for our shortcuts
+                if (e.key === 'Tab' || e.key === 'r' || e.key === 'd' || 
+                    (e.key >= '1' && e.key <= '6') ||
+                    (e.key.startsWith('Arrow'))) {
+                    e.preventDefault();
+                }
+                
+                handleKeyboardInput(e);
+            });
+            
+            // Show keyboard indicator when keys are pressed
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName !== 'INPUT' && !keyboardMode) {
+                    keyboardMode = true;
+                    document.getElementById('keyboardIndicator').style.display = 'block';
+                    setTimeout(() => {
+                        keyboardMode = false;
+                        document.getElementById('keyboardIndicator').style.display = 'none';
+                    }, 3000);
+                }
+            });
+        }
+        
+        function handleKeyboardInput(e) {
+            const scaleXSlider = document.getElementById('scaleX');
+            const scaleYSlider = document.getElementById('scaleY');
+            const rotationSlider = document.getElementById('rotation');
+            const opacitySlider = document.getElementById('opacity');
+            const blurSlider = document.getElementById('blur');
+            const fillRatioSlider = document.getElementById('fillRatio');
+            
+            let changed = false;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (e.ctrlKey) {
+                        // Rotation
+                        const rotStep = e.shiftKey ? 1 : 5;
+                        const newRot = Math.max(0, parseFloat(rotationSlider.value) - rotStep);
+                        updateSliderAndInput('rotation', newRot, '°');
+                        changed = true;
+                    } else {
+                        // Width (Scale X)
+                        const xStep = e.shiftKey ? 1 : 10;
+                        const newX = Math.max(50, parseFloat(scaleXSlider.value) - xStep);
+                        updateSliderAndInput('scaleX', newX);
+                        changed = true;
+                    }
+                    break;
+                    
+                case 'ArrowRight':
+                    if (e.ctrlKey) {
+                        // Rotation
+                        const rotStep = e.shiftKey ? 1 : 5;
+                        const newRot = Math.min(360, parseFloat(rotationSlider.value) + rotStep);
+                        updateSliderAndInput('rotation', newRot, '°');
+                        changed = true;
+                    } else {
+                        // Width (Scale X)
+                        const xStep = e.shiftKey ? 1 : 10;
+                        const newX = Math.min(350, parseFloat(scaleXSlider.value) + xStep);
+                        updateSliderAndInput('scaleX', newX);
+                        changed = true;
+                    }
+                    break;
+                    
+                case 'ArrowUp':
+                    if (e.ctrlKey && e.altKey) {
+                        // Fill Ratio
+                        const fillStep = e.shiftKey ? 0.01 : 0.05;
+                        const newFill = Math.min(0.95, parseFloat(fillRatioSlider.value) + fillStep);
+                        updateSliderAndInput('fillRatio', newFill);
+                        changed = true;
+                    } else if (e.altKey) {
+                        // Opacity
+                        const opStep = e.shiftKey ? 0.01 : 0.05;
+                        const newOp = Math.min(1.0, parseFloat(opacitySlider.value) + opStep);
+                        updateSliderAndInput('opacity', newOp);
+                        changed = true;
+                    } else if (e.ctrlKey) {
+                        // Blur
+                        const blurStep = e.shiftKey ? 0.05 : 0.1;
+                        const newBlur = Math.min(3.0, parseFloat(blurSlider.value) + blurStep);
+                        updateSliderAndInput('blur', newBlur);
+                        changed = true;
+                    } else {
+                        // Height (Scale Y)
+                        const yStep = e.shiftKey ? 1 : 10;
+                        const newY = Math.min(350, parseFloat(scaleYSlider.value) + yStep);
+                        updateSliderAndInput('scaleY', newY);
+                        changed = true;
+                    }
+                    break;
+                    
+                case 'ArrowDown':
+                    if (e.ctrlKey && e.altKey) {
+                        // Fill Ratio
+                        const fillStep = e.shiftKey ? 0.01 : 0.05;
+                        const newFill = Math.max(0.5, parseFloat(fillRatioSlider.value) - fillStep);
+                        updateSliderAndInput('fillRatio', newFill);
+                        changed = true;
+                    } else if (e.altKey) {
+                        // Opacity
+                        const opStep = e.shiftKey ? 0.01 : 0.05;
+                        const newOp = Math.max(0.1, parseFloat(opacitySlider.value) - opStep);
+                        updateSliderAndInput('opacity', newOp);
+                        changed = true;
+                    } else if (e.ctrlKey) {
+                        // Blur
+                        const blurStep = e.shiftKey ? 0.05 : 0.1;
+                        const newBlur = Math.max(0.05, parseFloat(blurSlider.value) - blurStep);
+                        updateSliderAndInput('blur', newBlur);
+                        changed = true;
+                    } else {
+                        // Height (Scale Y)
+                        const yStep = e.shiftKey ? 1 : 10;
+                        const newY = Math.max(50, parseFloat(scaleYSlider.value) - yStep);
+                        updateSliderAndInput('scaleY', newY);
+                        changed = true;
+                    }
+                    break;
+                    
+                case 'Tab':
+                    toggleFocusMode();
+                    changed = false; // Don't update ellipse for mode toggle
+                    break;
+                    
+                case 'r':
+                case 'R':
+                    resetToDefault();
+                    changed = false; // resetToDefault calls updateEllipse
+                    break;
+                    
+                case 'd':
+                case 'D':
+                    downloadImage();
+                    changed = false;
+                    break;
+                    
+                case '1':
+                    setPreset('academic');
+                    changed = false; // setPreset calls updateEllipse
+                    break;
+                case '2':
+                    setPreset('scientific');
+                    changed = false;
+                    break;
+                case '3':
+                    setPreset('nature');
+                    changed = false;
+                    break;
+                case '4':
+                    setPreset('tech');
+                    changed = false;
+                    break;
+                case '5':
+                    setPreset('sharp');
+                    changed = false;
+                    break;
+                case '6':
+                    setPreset('soft');
+                    changed = false;
+                    break;
+            }
+            
+            if (changed) {
+                updateEllipse();
+            }
+        }
+        
+        function updateSliderAndInput(id, value, suffix = '') {
+            const slider = document.getElementById(id);
+            const valueSpan = document.getElementById(id + 'Value');
+            const numberInput = document.getElementById(id + 'Input');
+            
+            slider.value = value;
+            numberInput.value = value;
+            valueSpan.textContent = value + suffix;
+        }
+        
+        function toggleFocusMode() {
+            const focusModeDiv = document.getElementById('focusMode');
+            focusMode = !focusMode;
+            
+            if (focusMode) {
+                focusModeDiv.style.display = 'flex';
+                updateEllipse(); // Redraw on focus canvas
+            } else {
+                focusModeDiv.style.display = 'none';
+            }
+        }
+        
+        function downloadImage() {
+            const scaleX = parseFloat(document.getElementById('scaleX').value);
+            const scaleY = parseFloat(document.getElementById('scaleY').value);
+            const rotation = parseFloat(document.getElementById('rotation').value);
+            
+            const link = document.createElement('a');
+            link.download = `gaussian_ellipse_${scaleX}x${scaleY}_${rotation}deg.png`;
+            
+            // Use focus canvas if in focus mode, otherwise main canvas
+            const canvasToDownload = focusMode ? focusCanvas : canvas;
+            link.href = canvasToDownload.toDataURL('image/png');
+            link.click();
+            
+            console.log(`📸 Saved 2D gaussian ellipse: ${scaleX}x${scaleY}, rotation: ${rotation}°`);
+        }
+        
+        function setPreset(type) {
+            const presets = {
+                academic: { 
+                    color: '4A90E2', scaleX: 150, scaleY: 100, rotation: 30,
+                    opacity: 0.8, blur: 1.0
+                },
+                scientific: { 
+                    color: 'E74C3C', scaleX: 180, scaleY: 120, rotation: 45,
+                    opacity: 0.75, blur: 0.8
+                },
+                nature: { 
+                    color: '27AE60', scaleX: 120, scaleY: 160, rotation: 20,
+                    opacity: 0.7, blur: 1.5
+                },
+                tech: { 
+                    color: '9B59B6', scaleX: 160, scaleY: 140, rotation: 60,
+                    opacity: 0.85, blur: 0.7
+                },
+                sharp: { 
+                    color: 'F39C12', scaleX: 200, scaleY: 200, rotation: 0,
+                    opacity: 0.9, blur: 0.5
+                },
+                soft: { 
+                    color: '34495E', scaleX: 220, scaleY: 150, rotation: 45,
+                    opacity: 0.6, blur: 2.5
+                }
+            };
+            
+            const preset = presets[type];
+            if (preset) {
+                Object.keys(preset).forEach(key => {
+                    if (key === 'color') {
+                        document.getElementById('colorInput').value = preset[key];
+                    } else {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            element.value = preset[key];
+                            const valueSpan = document.getElementById(key + 'Value');
+                            if (valueSpan) {
+                                valueSpan.textContent = preset[key] + (key === 'rotation' ? '°' : '');
+                            }
+                        }
+                    }
+                });
+                updateEllipse();
+            }
+        }
+        
+        function resetToDefault() {
+            const defaults = {
+                scaleX: 150, scaleY: 100, rotation: 30,
+                opacity: 0.8, blur: 1.0, fillRatio: 0.6
+            };
+             
+            document.getElementById('colorInput').value = '4A90E2'; 
+            
+            Object.keys(defaults).forEach(key => {
+                const slider = document.getElementById(key);
+                const valueSpan = document.getElementById(key + 'Value');
+                const numberInput = document.getElementById(key + 'Input');
+                
+                slider.value = defaults[key];
+                numberInput.value = defaults[key];
+                if (valueSpan) {
+                    valueSpan.textContent = defaults[key] + (key === 'rotation' ? '°' : '');
+                }
+            });
+            
+            updateEllipse();
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+        
+        // Handle focus mode clicks to exit
+        document.getElementById('focusMode').addEventListener('click', (e) => {
+            if (e.target.id === 'focusMode') {
+                toggleFocusMode();
+            }
+        });
+    </script>
+</body>
+</html>
