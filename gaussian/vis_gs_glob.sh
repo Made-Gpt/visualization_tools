@@ -1,37 +1,36 @@
 #!/bin/bash 
  
-# 3D Gaussian Rendering with Mitsuba v3
-# Usage: ./vis_gs.sh
+# 3D Gaussian Rendering with Mitsuba v3 - Bird's Eye View (Global)
+# Usage: ./vis_gs_glob.sh
  
 # 配置参数 
-PLY_ROOT="/media/made/MyPassport/DATASET/ScanNet++/outputs/occscannet/base"  # /media/made/MyPassport/DATASET/ScanNet++/outputs/occscannet/exp/base
-PLY_FOLD="vis_occ_da_gaussian_cam"  # "vis_occ_da_gaussian_cam", "vis_occ_gaussian_cam", "vis_occ_pca_feat_2" 
-OUTPUT_FOLDER="vis_mitsuba_gs"  # "vis_occ_da_mitsuba_gs" 
-MID_FOLDER="pred_cam" # "pred", "pca_feat_2", "pca_anchor" 
+PLY_ROOT="/media/made/MyPassport/DATASET/ScanNet++/outputs/scene_occ/exp/miniline"  # mini
+PLY_FOLD="vis_occ_gaussian_cache"  
+OUTPUT_FOLDER="vis_mitsuba_gs"  
+MID_FOLDER="pred_glob" 
 PLY_EXT=".ply" 
+ 
+PCD_SCENES=("scene0000_00" "scene0003_02" "scene0006_02" "scene0025_00" "scene0031_00" "scene0107_00" "scene0111_00" "scene0168_01" 
+            "scene0234_00" "scene0280_01" "scene0362_01" "scene0525_00" "scene0626_01" "scene0673_02" "scene0690_00" "scene0706_00")
+PCD_NAMES=("pcd_00005" "pcd_00012" "pcd_00018" "pcd_00020" "pcd_00033" "pcd_00035" "pcd_00044" "pcd_00046" 
+           "pcd_00050" "pcd_00053" "pcd_00059" "pcd_00063" "pcd_00070" "pcd_00076" "pcd_00084" "pcd_00087" "pcd_00094") 
 
-PCD_SCENES=("scene0000_00" "scene0003_02" "scene0006_02" "scene0024_00" "scene0025_00" "scene0030_01" "scene0031_00" "scene0032_00" "scene0038_01" 
-            "scene0040_00" "scene0059_00" "scene0070_00" "scene0072_00" "scene0089_00" "scene0089_02" "scene0101_02" "scene0107_00" "scene0111_00"
-            "scene0168_01" "scene0234_00" "scene0280_01" "scene0362_01" "scene0525_00" "scene0626_01" "scene0673_02" "scene0706_00")
-PCD_NAMES=("pcd_00005" "pcd_00012" "pcd_00017" "pcd_00018" "pcd_00020" "pcd_00033" "pcd_00035" "pcd_00046"
-           "pcd_00048" "pcd_00050" "pcd_00053" "pcd_00056" "pcd_00059" "pcd_00070" "pcd_00076" "pcd_00087")  
-  
 # 渲染参数 
-WIDTH=1024 
-HEIGHT=1024
-SPP=128  # Samples per pixel (reduced for faster rendering)
-MAX_GAUSSIANS=5000  # Maximum gaussians per scene
-
+WIDTH=1200  # 1024, 1600, 1600 
+HEIGHT=900  # 1024, 1600, 1200 
+SPP=128  # Samples per pixel
+MAX_GAUSSIANS=15000  # Maximum gaussians per scene
+ 
 # 椭球网格质量参数 (Higher values = better quality, slower rendering)
-N_THETA=24  # Longitude divisions (horizontal, around Z-axis) - Academic quality: 24-32
-N_PHI=16   # Latitude divisions (vertical, north to south pole) - Academic quality: 12-20
+N_THETA=24  # Longitude divisions
+N_PHI=16   # Latitude divisions
   
 # 光照参数 (Academic quality lighting)  
-AMBIENT_LIGHT=0.1    # Environment lighting strength (0.2-0.6) - Reduced for deeper colors 
-MAIN_LIGHT=3.0       # Primary directional light strength (2.0-4.0) - Reduced for deeper colors 
-FILL_LIGHT=2.5       # Fill light strength (1.5-2.5) - Reduced for deeper colors 
-TOP_LIGHT=1.0        # Top light strength (1.0-2.0) - Reduced for deeper colors 
- 
+AMBIENT_LIGHT=0.1    # Environment lighting strength
+MAIN_LIGHT=3.0       # Primary directional light strength
+FILL_LIGHT=2.5       # Fill light strength
+TOP_LIGHT=1.0        # Top light strength
+
 # 函数：选择场景 
 select_scene() { 
     echo "Available scenes:"
@@ -83,17 +82,17 @@ if [ ! -d "$PLY_ROOT/$PLY_FOLD" ]; then
     exit 1
 fi
 
-echo "=== Mitsuba v3 Gaussian Rendering (Academic Quality) ==="
+echo "=== Mitsuba v3 Gaussian Rendering - Bird's Eye View (Global) ==="
 echo "Base path: $PLY_ROOT/$PLY_FOLD"
 echo "Output folder: $PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER"
 echo "Render resolution: ${WIDTH}x${HEIGHT}" 
 echo "Samples per pixel: $SPP"
 echo "Max gaussians: $MAX_GAUSSIANS"
+echo "View: Bird's Eye (Top-Down)"
 echo ""
 echo "Academic Quality Settings:"
 echo "  - Ellipsoid mesh: ${N_THETA}x${N_PHI} (theta x phi divisions)"
 echo "  - Lighting: Ambient=${AMBIENT_LIGHT}, Main=${MAIN_LIGHT}, Fill=${FILL_LIGHT}, Top=${TOP_LIGHT}"
-echo "  - PNG output: Both transparent and solid background versions"
 echo ""
 
 # 选择场景和PCD名称
@@ -129,7 +128,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "Starting Gaussian rendering..."
+echo "Starting Gaussian rendering (Bird's Eye View)..."
 
 # 渲染每个选定的场景和PCD组合
 TOTAL_JOBS=0
@@ -155,12 +154,12 @@ for scene in "${SELECTED_SCENES[@]}"; do
         PLY_FILE="$pcd_name$PLY_EXT"
         FULL_PLY_PATH="$INPUT_PATH/$PLY_FILE"
         
-        # 构建输出路径: OUTPUT_FOLDER/SCENE/PCD_NAME.exr
+        # 构建输出路径: OUTPUT_FOLDER/SCENE/PCD_NAME_glob.exr
         SCENE_OUTPUT_DIR="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene"
         mkdir -p "$SCENE_OUTPUT_DIR"  # 创建场景输出目录
-        OUTPUT_PATH="$SCENE_OUTPUT_DIR/${pcd_name}.exr" 
+        OUTPUT_PATH="$SCENE_OUTPUT_DIR/${pcd_name}_glob.exr" 
         
-        echo "[$COMPLETED_JOBS/$TOTAL_JOBS] Processing: $scene/$pcd_name"
+        echo "[$COMPLETED_JOBS/$TOTAL_JOBS] Processing: $scene/$pcd_name (Bird's Eye)"
         echo "  Input: $FULL_PLY_PATH"
         echo "  Output: $OUTPUT_PATH"
         
@@ -180,7 +179,7 @@ for scene in "${SELECTED_SCENES[@]}"; do
         fi
         
         # 运行Python脚本渲染单个文件
-        python3 vis_gs.py \
+        python3 vis_gs_glob.py \
             --input_file "$FULL_PLY_PATH" \
             --output_file "$OUTPUT_PATH" \
             --width $WIDTH \
@@ -207,21 +206,80 @@ done
 echo ""
 echo "=== Rendering Complete ==="
 echo "Results saved to: $PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER"
-echo "File count: $(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*.exr" 2>/dev/null | wc -l) EXR images"
+echo "File count: $(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*_glob.exr" 2>/dev/null | wc -l) EXR images"
 echo "Directory structure:"
 find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -type d 2>/dev/null | sort | sed "s|$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER|  .|g"
 
 # 检查是否有任何成功的渲染
-EXR_COUNT=$(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*.exr" 2>/dev/null | wc -l)
+EXR_COUNT=$(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*_glob.exr" 2>/dev/null | wc -l)
 if [ "$EXR_COUNT" -gt 0 ]; then
 
     # 可选：转换EXR到PNG用于预览 (只转换本次运行的文件)
     echo "" 
     read -p "Convert current batch EXR files to PNG for preview? (y/n): " convert_choice
     if [[ $convert_choice =~ ^[Yy]$ ]]; then
+        
+        # Step 1: Ask about cropping
+        echo ""
+        read -p "Apply center crop before conversion? (y/n): " crop_choice
+        if [[ $crop_choice =~ ^[Yy]$ ]]; then
+            echo ""
+            echo "Choose crop percentage (keep center area):"
+            echo "  1. No crop (100%)"
+            echo "  2. Light crop (90%)"
+            echo "  3. Medium crop (80%)"
+            echo "  4. Heavy crop (70%)"
+            echo "  5. Very heavy crop (60%)"
+            echo "  6. Custom percentage"
+            
+            while true; do
+                read -p "Select crop option (1-6): " crop_option
+                
+                if [[ "$crop_option" == "1" ]]; then
+                    CROP_PERCENTAGE=100
+                    APPLY_CROP=false
+                    break
+                elif [[ "$crop_option" == "2" ]]; then
+                    CROP_PERCENTAGE=90
+                    APPLY_CROP=true
+                    break
+                elif [[ "$crop_option" == "3" ]]; then
+                    CROP_PERCENTAGE=80
+                    APPLY_CROP=true
+                    break
+                elif [[ "$crop_option" == "4" ]]; then
+                    CROP_PERCENTAGE=70
+                    APPLY_CROP=true
+                    break
+                elif [[ "$crop_option" == "5" ]]; then
+                    CROP_PERCENTAGE=60
+                    APPLY_CROP=true
+                    break
+                elif [[ "$crop_option" == "6" ]]; then
+                    while true; do
+                        read -p "Enter custom percentage (1-100): " custom_percent
+                        if [[ "$custom_percent" =~ ^[0-9]+$ ]] && [ "$custom_percent" -ge 1 ] && [ "$custom_percent" -le 100 ]; then
+                            CROP_PERCENTAGE=$custom_percent
+                            APPLY_CROP=true
+                            break
+                        else
+                            echo "Invalid input. Please enter a number between 1 and 100."
+                        fi
+                    done
+                    break
+                else
+                    echo "Invalid selection. Please enter 1-6."
+                fi
+            done
+        else
+            APPLY_CROP=false
+            CROP_PERCENTAGE=100
+        fi
+        
+        # Step 2: Choose brightness level
         echo ""
         echo "Choose PNG brightness level:"
-        echo "  1. Dark (--powc 0.8)"
+        echo "  1. Dark (--powc 1.0)"
         echo "  2. Light (--powc 0.5)"
         
         while true; do
@@ -242,7 +300,14 @@ if [ "$EXR_COUNT" -gt 0 ]; then
             fi
         done
         
-        echo "Converting current batch EXR to PNG with oiiotool ($BRIGHTNESS_DESC mode)..." 
+        # Display settings
+        if [ "$APPLY_CROP" = true ]; then
+            echo "Converting current batch EXR to PNG with crop (${CROP_PERCENTAGE}%) and brightness ($BRIGHTNESS_DESC mode)..."
+            CROP_SUFFIX="_c${CROP_PERCENTAGE}"
+        else
+            echo "Converting current batch EXR to PNG with oiiotool ($BRIGHTNESS_DESC mode, no crop)..." 
+            CROP_SUFFIX=""
+        fi
         
         # Check if oiiotool is available 
         if ! command -v oiiotool &> /dev/null; then
@@ -254,21 +319,52 @@ if [ "$EXR_COUNT" -gt 0 ]; then
             # Convert only the files from current run (selected scenes and PCD names)
             for scene in "${SELECTED_SCENES[@]}"; do
                 for pcd_name in "${SELECTED_NAMES[@]}"; do
-                    exr_file="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene/${pcd_name}.exr"
+                    exr_file="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene/${pcd_name}_glob.exr"
                     
                     if [ -f "$exr_file" ]; then 
-                        png_file="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene/${pcd_name}${BRIGHTNESS_SUFFIX}.png"
+                        png_file="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene/${pcd_name}_glob${CROP_SUFFIX}${BRIGHTNESS_SUFFIX}.png"
                         
-                        echo "  Converting: $scene/${pcd_name}.exr -> $scene/${pcd_name}${BRIGHTNESS_SUFFIX}.png (--powc $POWC_VALUE)"
-                        oiiotool "$exr_file" --powc "$POWC_VALUE" -o "$png_file"
+                        # Step 3: Apply crop before brightness adjustment
+                        if [ "$APPLY_CROP" = true ]; then
+                            # Get image dimensions
+                            DIMS=$(oiiotool --info -v "$exr_file" 2>/dev/null | grep -oP '\d+ x \d+' | head -1)
+                            IMG_WIDTH=$(echo $DIMS | cut -d' ' -f1)
+                            IMG_HEIGHT=$(echo $DIMS | cut -d' ' -f3)
+                            
+                            # Calculate crop parameters (center crop)
+                            NEW_W=$((IMG_WIDTH * CROP_PERCENTAGE / 100))
+                            NEW_H=$((IMG_HEIGHT * CROP_PERCENTAGE / 100))
+                            START_X=$(((IMG_WIDTH - NEW_W) / 2))
+                            START_Y=$(((IMG_HEIGHT - NEW_H) / 2))
+                            
+                            echo "  Converting: $scene/${pcd_name}_glob.exr -> ${pcd_name}_glob${CROP_SUFFIX}${BRIGHTNESS_SUFFIX}.png"
+                            echo "    Crop: ${CROP_PERCENTAGE}% (${NEW_W}x${NEW_H} from ${IMG_WIDTH}x${IMG_HEIGHT}), Brightness: --powc $POWC_VALUE"
+                            
+                            # Apply crop first, then brightness
+                            # Format: --cut X1,Y1,X2,Y2 (left,bottom,right,top in pixel coordinates)
+                            END_X=$((START_X + NEW_W))
+                            END_Y=$((START_Y + NEW_H))
+                            
+                            oiiotool "$exr_file" \
+                                --cut ${START_X},${START_Y},${END_X},${END_Y} \
+                                --powc "$POWC_VALUE" \
+                                -o "$png_file"
+                        else
+                            echo "  Converting: $scene/${pcd_name}_glob.exr -> $scene/${pcd_name}_glob${BRIGHTNESS_SUFFIX}.png (--powc $POWC_VALUE)"
+                            oiiotool "$exr_file" --powc "$POWC_VALUE" -o "$png_file"
+                        fi
                          
                         if [ $? -eq 0 ]; then
-                            echo "  ✅ Saved PNG with transparency ($BRIGHTNESS_DESC): $png_file"
+                            if [ "$APPLY_CROP" = true ]; then
+                                echo "  ✅ Saved PNG with ${CROP_PERCENTAGE}% crop and $BRIGHTNESS_DESC brightness: $png_file"
+                            else
+                                echo "  ✅ Saved PNG with transparency ($BRIGHTNESS_DESC): $png_file"
+                            fi
                         else
                             echo "  ❌ Failed to convert: $exr_file"
                         fi
                     else
-                        echo "  ⚠️  EXR file not found: $scene/${pcd_name}.exr (probably failed to render)"
+                        echo "  ⚠️  EXR file not found: $scene/${pcd_name}_glob.exr (probably failed to render)"
                     fi
                 done
             done 
@@ -285,4 +381,5 @@ echo ""
 echo "=== Summary ==="
 echo "Input: $PLY_ROOT/$PLY_FOLD"
 echo "Output: $PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER"
+echo "View: Bird's Eye (Top-Down)"
 echo "Resolution: ${WIDTH}x${HEIGHT}, SPP: $SPP, Max Gaussians: $MAX_GAUSSIANS"

@@ -1,0 +1,63 @@
+{
+  "Comparison_All": {
+    "output_folder": "effect",
+    "methods": {
+      "TGSFormer": {
+        "path": "effect/tgsformer_scene.txt",
+        "color": "#6BA3D0",
+        "marker": "o"
+      },
+      "SplatSSC": {
+        "path": "effect/splatssc_scene.txt",
+        "color": "#91C788",
+        "marker": "s"
+      },
+      "EmbodiedOcc": {
+        "path": "effect/embodiedocc_scene.txt",
+        "color": "#E89C7D",
+        "marker": "^"
+      }
+    },
+    "metrics": ["anchors", "features", "memory"],
+    "description": "Compare all methods: anchors, features, and memory usage"
+  },
+  "Anchors_Only": {
+    "output_folder": "effect",
+    "methods": {
+      "TGSFormer": {
+        "path": "effect/tgsformer_scene.txt",
+        "color": "#6BA3D0",
+        "marker": "o"
+      },
+      "SplatSSC": {
+        "path": "effect/splatssc_scene.txt",
+        "color": "#91C788",
+        "marker": "s"
+      },
+      "EmbodiedOcc": {
+        "path": "effect/embodiedocc_scene.txt",
+        "color": "#E89C7D",
+        "marker": "^"
+      }
+    },
+    "metrics": ["anchors"],
+    "description": "Compare accumulated anchors only"
+  },
+  "Features_Memory": {
+    "output_folder": "effect",
+    "methods": {
+      "SplatSSC": {
+        "path": "effect/splatssc_scene.txt",
+        "color": "#91C788",
+        "marker": "s"
+      },
+      "EmbodiedOcc": {
+        "path": "effect/embodiedocc_scene.txt",
+        "color": "#E89C7D",
+        "marker": "^"
+      }
+    },
+    "metrics": ["features", "memory"],
+    "description": "Compare features and memory (methods with feature tracking)"
+  }
+}

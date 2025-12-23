@@ -1,0 +1,34 @@
+2025/11/17 11:40:39 - mmengine - INFO - Overall Average Single Frame Inference Time: 168.02 ms 
+--- Average NEW Anchors Generated at Each Frame Position --- 
+2025/11/17 11:40:39 - mmengine - INFO -   Frame  0: Avg= 2262.0, Std=   0.0 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame  5: Avg= 2158.3, Std= 520.9 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 10: Avg= 3436.4, Std=1145.1 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 15: Avg= 4660.4, Std=1857.4 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 20: Avg= 5599.1, Std=2135.2 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 25: Avg= 6057.3, Std=2124.1 (NEW anchors, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 29: Avg= 7443.2, Std=3644.9 (NEW anchors, across 16 scenes) 
+2025/11/06 22:25:42 - mmengine - INFO - 
+--- Average ACCUMULATED Anchors at Each Frame Position --- 
+2025/11/17 11:40:39 - mmengine - INFO -   Frame  0: Avg=  2205.8, Std=   67.3 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame  5: Avg=  8646.2, Std= 1088.1 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 10: Avg= 14383.6, Std= 1327.2 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 15: Avg= 19909.5, Std= 1660.6 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 20: Avg= 25392.4, Std= 1771.0 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 25: Avg= 30681.6, Std= 1959.1 (TOTAL accumulated, across 16 scenes)
+2025/11/17 11:40:39 - mmengine - INFO -   Frame 29: Avg= 34962.0, Std= 2093.2 (TOTAL accumulated, across 16 scenes)
+2025/11/06 22:25:42 - mmengine - INFO -
+--- Memory Usage at Different Frame Positions ---
+2025/11/15 23:49:17 - mmengine - INFO -   Frame    Allocated (GB)            Peak (GB)                 Gaussian (MiB)       Scenes  
+2025/11/15 23:49:17 - mmengine - INFO -   -------- ------------------------- ------------------------- -------------------- --------
+2025/11/17 11:40:39 - mmengine - INFO -    0       2.194±0.266           3.699±2.301           0.99±0.03            16
+2025/11/17 11:40:39 - mmengine - INFO -    5       2.196±0.266           3.699±2.301           3.89±0.49            16
+2025/11/17 11:40:39 - mmengine - INFO -   10       2.201±0.265           3.699±2.301           6.47±0.60            16
+2025/11/17 11:40:39 - mmengine - INFO -   15       2.204±0.266           3.699±2.301           8.96±0.75            16
+2025/11/17 11:40:39 - mmengine - INFO -   20       2.207±0.266           3.699±2.301           11.43±0.80           16
+2025/11/17 11:40:39 - mmengine - INFO -   25       2.211±0.266           3.700±2.301           13.81±0.88           16
+2025/11/17 11:40:39 - mmengine - INFO -   29       2.213±0.266           3.702±2.300           15.74±0.94           16
+2025/11/15 23:49:17 - mmengine - INFO -
+11/17 14:07:48 - mmengine - INFO - Number of params: 133857000  
+1/16 15:00:26 - mmengine - INFO - Current global iou of sem is 0.3892157079402139 
+11/16 15:00:26 - mmengine - INFO - Current global iou of geo is 0.4595971803472408
+

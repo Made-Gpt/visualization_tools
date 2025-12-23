@@ -1,0 +1,22 @@
+{
+  "Label": {
+    "pcd_root": "/media/made/MyPassport/DATASET/ScanNet++/outputs/scene_occ/exp/mini",
+    "pcd_fold": "vis_occ_label_global", 
+    "output_folder": "vis_occ_da_mayavi/label" 
+  },
+  "SplatSSC": { 
+    "pcd_root": "/media/made/MyPassport/DATASET/ScanNet++/outputs/occscannet/base",
+    "pcd_fold": "vis_occ_da_pred",
+    "output_folder": "vis_occ_da_mayavi/pred"
+  }, 
+  "EmbodiedOcc": {
+    "pcd_root": "/media/made/MyPassport/DATASET/ScanNet++/outputs/scene_occ/exp/miniline",
+    "pcd_fold": "vis_occ_pred_global", 
+    "output_folder": "vis_occ_da_mayavi/pred"
+  },
+  "Ours": {
+    "pcd_root": "/media/made/MyPassport/DATASET/ScanNet++/outputs/scene_occ/exp/mini",
+    "pcd_fold": "vis_occ_pred_global",
+    "output_folder": "vis_occ_da_mayavi/pred"
+  } 
+} 

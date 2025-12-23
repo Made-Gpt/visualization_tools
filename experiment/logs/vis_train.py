@@ -18,49 +18,20 @@ plt.rcParams['ytick.labelsize'] = 32
 plt.rcParams['legend.fontsize'] = 28
 
 class LossParser:
-    """Parse training logs to extract Loss and mIoU with flexible loss calculation"""
+    """Parse training logs to extract Loss and mIoU"""
     
-    def __init__(self, log_format=None):
-        """
-        Initialize parser with specific log format
-        
-        Args:
-            log_format: dict with format info, or str for backward compatibility
-        """
-        self.log_format = log_format
-        
-        # Extract mIoU (after EVAL) - common for all formats
+    def __init__(self):
+        # Extract total Loss (skip FocalLoss, LovaszLoss, Geo_Scal_Loss)
+        self.train_pattern = re.compile(
+            r'\[TRAIN\]\s+Epoch\s+(\d+)\s+Iter\s+(\d+)/(\d+).*?Geo_Scal_Loss:.*?Loss:\s+([\d.]+)\s+\('
+        )
+        # Extract mIoU (after EVAL)
         self.miou_pattern = re.compile(
             r'Current val iou of sem is ([\d.]+)'
         )
-        
-        # Pattern to extract epoch, iter info and a full line for loss parsing
-        self.train_line_pattern = re.compile(
-            r'\[TRAIN\]\s+Epoch\s+(\d+)\s+Iter\s+(\d+)/(\d+).*'
-        )
     
-    def _extract_loss_from_line(self, line: str, loss_name: str) -> float:
-        """
-        Extract a specific loss value from a log line
-        Uses word boundary to ensure exact match (e.g., 'Loss' won't match 'FocalLoss')
-        """
-        # Use word boundary \b to ensure exact match
-        # This prevents 'Loss' from matching 'FocalLoss', 'LovaszLoss', etc.
-        pattern = re.compile(rf'\b{loss_name}:\s+([\d.]+)')
-        match = pattern.search(line)
-        if match:
-            return float(match.group(1))
-        return None
-    
-    def parse_log_file(self, log_path: str, loss_config: Dict = None) -> Dict:
-        """
-        Parse log file to extract training loss and mIoU
-        
-        Args:
-            log_path: Path to log file
-            loss_config: Dict with 'losses' and 'weights' for custom loss calculation
-                        If None or missing 'losses', directly extract 'Loss' field
-        """
+    def parse_log_file(self, log_path: str) -> Dict:
+        """Parse log file to extract training loss and mIoU"""
         if not os.path.exists(log_path):
             raise FileNotFoundError(f"Log file not found: {log_path}")
         
@@ -78,63 +49,22 @@ class LossParser:
         iters_per_epoch = 0
         current_epoch = 0
         
-        # Determine if we need custom loss calculation
-        use_custom_loss = (loss_config and 
-                          'losses' in loss_config and 
-                          'weights' in loss_config and
-                          self.log_format and 
-                          isinstance(self.log_format, dict))
-        
-        if use_custom_loss:
-            target_losses = list(self.log_format.values())[0]  # Get the loss list from format
-            component_losses = loss_config['losses']
-            weights = loss_config['weights']
-            
-            # Check if losses match the target format
-            need_calculation = (component_losses != target_losses)
-        else:
-            need_calculation = False
-        
         for line in lines:
             # Extract training loss
-            match = self.train_line_pattern.search(line)
-            if match and '[TRAIN]' in line:
+            match = self.train_pattern.search(line)
+            if match:
                 epoch = int(match.group(1))
                 iter_in_epoch = int(match.group(2))
                 max_iter = int(match.group(3))
+                loss = float(match.group(4))
                 
                 max_epoch = max(max_epoch, epoch)
                 iters_per_epoch = max_iter
                 current_epoch = epoch
                 total_iter = (epoch - 1) * iters_per_epoch + iter_in_epoch + 1
                 
-                # Calculate loss based on configuration
-                if need_calculation:
-                    # Custom calculation: extract target losses and compute weighted sum
-                    loss = 0.0
-                    all_found = True
-                    for target_loss in target_losses:
-                        if target_loss in component_losses:
-                            loss_value = self._extract_loss_from_line(line, target_loss)
-                            if loss_value is not None:
-                                weight_idx = component_losses.index(target_loss)
-                                loss += loss_value * weights[weight_idx]
-                            else:
-                                all_found = False
-                                break
-                        else:
-                            all_found = False
-                            break
-                    
-                    if all_found:
-                        data['train']['total_iter'].append(total_iter)
-                        data['train']['Loss'].append(loss)
-                else:
-                    # Direct extraction: read "Loss" field from log
-                    loss_value = self._extract_loss_from_line(line, 'Loss')
-                    if loss_value is not None:
-                        data['train']['total_iter'].append(total_iter)
-                        data['train']['Loss'].append(loss_value)
+                data['train']['total_iter'].append(total_iter)
+                data['train']['Loss'].append(loss)
             
             # Extract mIoU
             miou_match = self.miou_pattern.search(line)
@@ -694,59 +624,27 @@ class LossCurvePlotter:
 def main():
     parser = argparse.ArgumentParser(description='Training Loss and mIoU Visualization')
     parser.add_argument('--configs', nargs='+', required=True,
-                       help='Config format: name1:path1 or name1:json_config')
+                       help='Config format: name1:path1 name2:path2')
     parser.add_argument('--output', default='loss_curves.png')
     parser.add_argument('--figsize', nargs=2, type=int, default=[20, 10])
     parser.add_argument('--dpi', type=int, default=600)
     parser.add_argument('--smooth', action='store_true', default=True)
-    parser.add_argument('--log-format',
-                       help='Log format as JSON string or dict')
     parser.add_argument('--frames-per-iter', nargs='+', type=int,
                        help='Frames per iteration for each config')
     
     args = parser.parse_args()
     
-    # Parse log format
-    log_format = None
-    if args.log_format:
-        try:
-            import json
-            log_format = json.loads(args.log_format)
-        except:
-            # Backward compatibility: treat as string
-            log_format = args.log_format
-    
-    # Parse configs - support both simple path and JSON config
-    config_infos = {}
+    config_paths = {}
     for config_str in args.configs:
-        parts = config_str.split(':', 1)
-        if len(parts) != 2:
-            continue
-        name, value = parts
-        
-        # Try to parse as JSON (for advanced config)
-        try:
-            import json
-            config_infos[name] = json.loads(value)
-        except:
-            # Fallback: treat as simple path string
-            config_infos[name] = {'path': value}
+        name, path = config_str.split(':', 1)
+        config_paths[name] = path
     
-    loss_parser = LossParser(log_format=log_format)
+    loss_parser = LossParser()
     config_data = {}
     frames_info = {}
     
-    for idx, (config_name, config_info) in enumerate(config_infos.items()):
-        # Extract path
-        if isinstance(config_info, dict):
-            log_path = config_info.get('path', config_info)
-            loss_config = {k: v for k, v in config_info.items() if k != 'path'}
-        else:
-            log_path = config_info
-            loss_config = None
-        
-        # Parse log file with custom loss calculation if needed
-        data = loss_parser.parse_log_file(log_path, loss_config if loss_config else None)
+    for idx, (config_name, log_path) in enumerate(config_paths.items()):
+        data = loss_parser.parse_log_file(log_path)
         config_data[config_name] = data
         
         frames_per_iter = 1
@@ -755,12 +653,8 @@ def main():
         
         frames_info[config_name] = {'frames_per_iter': frames_per_iter}
         
-        # Handle empty data gracefully
-        if data['train']['Loss']:
-            miou_str = f", mIoU: {len(data['val']['mIoU'])} epochs" if data['val']['mIoU'] else ""
-            print(f"{config_name}: {len(data['train']['Loss'])} loss points, final loss: {data['train']['Loss'][-1]:.4f}{miou_str}")
-        else:
-            print(f"⚠️  {config_name}: No loss data found")
+        miou_str = f", mIoU: {len(data['val']['mIoU'])} epochs" if data['val']['mIoU'] else ""
+        print(f"{config_name}: {len(data['train']['Loss'])} loss points, final loss: {data['train']['Loss'][-1]:.4f}{miou_str}")
     
     plotter = LossCurvePlotter()
     plotter.plot_multiple_configs(

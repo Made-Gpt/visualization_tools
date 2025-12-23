@@ -1,0 +1,49 @@
+{
+  "SplatSSC": {
+    "output_folder": "logs/splatssc",
+    "log_format": { 
+        "splatssc": ["FocalLoss", "LovaszLoss", "Prob_Scal_Loss"],
+        "target": "Loss" 
+    },
+    "logs": { 
+      "log1": {
+        "path": "logs/splatssc/splatssc_base.log",
+        "losses": ["FocalLoss", "LovaszLoss", "Prob_Scal_Loss"],
+        "weights": [100.0, 2.0, 0.5]
+      },
+      "log2": {
+        "path": "logs/splatssc/splatssc_base_e2e.log", 
+        "losses": ["FocalLoss", "LovaszLoss", "Prob_Scal_Loss", "Depth_Huber_Loss", "PCD_Huber_Loss"],
+        "weights": [100.0, 2.0, 0.5, 100.0, 100.0]
+      }
+    },
+    "frames_per_iter": [1, 1],
+    "description": "SplatSSC training comparison: base vs e2e"
+  },
+  "TGSFormer": {
+    "output_folder": "logs/tgsformer",
+    "log_format": {
+        "tgsformer": ["FocalLoss", "LovaszLoss", "Geo_Scal_Loss"],
+        "target": "Loss" 
+    },
+    "logs": { 
+      "log1": { 
+        "path": "logs/tgsformer/sequence_embed.log",
+        "losses": ["FocalLoss", "LovaszLoss", "Geo_Scal_Loss"],
+        "weights": [100.0, 2.0, 1.0] 
+      }, 
+      "log2": { 
+        "path": "logs/tgsformer/sequence_mono.log",
+        "losses": ["FocalLoss", "LovaszLoss", "Geo_Scal_Loss"],
+        "weights": [100.0, 2.0, 1.0] 
+      }, 
+      "log3": { 
+        "path": "logs/tgsformer/mono.log",
+        "losses": ["FocalLoss", "LovaszLoss", "Geo_Scal_Loss"],
+        "weights": [100.0, 2.0, 1.0] 
+      }
+    },
+    "frames_per_iter": [30, 30, 1],
+    "description": "TGSFormer training comparison: sequence_embed vs sequence_mono vs mono"
+  }
+}

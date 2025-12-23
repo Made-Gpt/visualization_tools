@@ -1,0 +1,420 @@
+{
+  "default": {
+    "azimuth": 75,
+    "elevation": 50,
+    "parallel_scale_factor": 0.5,
+    "center_offset": [0.0, 0.0, 0.0]
+  },
+  "scene0000_00": {
+    "pcd_00005": {
+      "azimuth": 65,
+      "elevation": 65,
+      "parallel_scale_factor": 0.55,
+      "center_offset": [0.0, 0.0, 0.0]
+    },
+    "pcd_00012": {
+      "azimuth": 145,
+      "elevation": 50,
+      "parallel_scale_factor": 0.48,
+      "center_offset": [0.0, 0.0, 0.0]
+    },
+    "pcd_00018": { 
+      "azimuth": 160,
+      "elevation": 75,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.0]
+    },
+    "pcd_00033": {
+      "azimuth": -45,
+      "elevation": 55,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.0]
+    },
+    "pcd_00053": {
+      "azimuth": -120,
+      "elevation": 68,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.1]
+    },
+    "pcd_00076": {
+      "azimuth": 225,
+      "elevation": 75,
+      "parallel_scale_factor": 0.45, 
+      "center_offset": [-0.2, 0.0, 0.0],  
+      "_note": "offset: [0.0, 0.0, 0.0] or [0.2, 0.0, -0.1] or [-0.2, 0.0, 0.0]. factor: 0.48 or 0.45"
+    }
+  },
+  "scene0006_02": {
+    "pcd_00033": {
+      "azimuth": 170,
+      "elevation": 55,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [-0.1, 0.0, 0.15]
+    }
+  },
+  "scene0010_00": {
+    "pcd_00059": {
+      "azimuth": 85,
+      "elevation": 55,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, -0.05]
+    }
+  },
+  "scene0024_00": {
+    "pcd_00012": {
+      "azimuth": 25,
+      "elevation": 65,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [-0.15, 0.0, -0.10]
+    }
+  },
+  "scene0025_00": {
+    "pcd_00082": {
+      "azimuth": -15,
+      "elevation": 55,
+      "parallel_scale_factor": 0.55,
+      "center_offset": [0.0, 0.0, 0.0]
+    }
+  },
+  "scene0030_01": {
+    "pcd_00053": {
+      "azimuth": 105,
+      "elevation": 65,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [-0.15, 0.0, -0.10]
+    }
+  },
+  "scene0031_00": {
+    "pcd_00087": {
+      "azimuth": 238,
+      "elevation": 55,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [-0.40, 0.0, 0.45],
+      "zoom": {
+        "parallel_scale_factor": 0.15,
+        "center_offset": [-1.0, 0.0, 0.55],
+        "image_size": [1200, 1600]
+      }
+    }
+  },
+  "scene0032_00": {
+    "pcd_00076": {
+      "azimuth": 5,
+      "elevation": 60,
+      "parallel_scale_factor": 0.60,
+      "center_offset": [0.0, 0.0, 0.0]
+    }
+  },
+  "scene0038_01": {
+    "pcd_00018": {
+      "azimuth": 165,
+      "elevation": 50,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [0.0, 0.0, -0.20]
+    }
+  },
+  "scene0040_00": {
+    "pcd_00005": {
+      "azimuth": 35,
+      "elevation": 35,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.1]
+    }
+  },
+  "scene0052_02": {
+    "pcd_00079": {
+      "azimuth": 35,
+      "elevation": 55,
+      "parallel_scale_factor": 0.55,
+      "center_offset": [0.0, 0.0, 0.0]
+    }
+  },
+  "scene0056_00": {
+    "pcd_00059": {
+      "azimuth": 65,
+      "elevation": 50,
+      "parallel_scale_factor": 0.38,
+      "center_offset": [0.5, 0.0, 0.2]
+    }
+  },
+  "scene0058_00": {
+    "pcd_00074": {
+      "azimuth": 255,
+      "elevation": 40,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.5, 0.0, -1.0]
+    }
+  },
+  "scene0059_00": {
+    "pcd_00056": {
+      "azimuth": 228,
+      "elevation": 45,
+      "parallel_scale_factor": 0.42,
+      "center_offset": [0.0, 0.0, 0.1]
+    }
+  },
+  "scene0070_00": {
+    "pcd_00017": {
+      "azimuth": -45,
+      "elevation": 45,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [-0.15, 0.0, 0.0]
+    }
+  },
+  "scene0072_00": {
+    "pcd_00005": {
+      "azimuth": 160,
+      "elevation": 45,
+      "parallel_scale_factor": 0.48,
+      "center_offset": [0.0, 0.0, 0.1]
+    }
+  },
+  "scene0089_02": {
+    "pcd_00012": {
+      "azimuth": 130,
+      "elevation": 50,
+      "parallel_scale_factor": 0.55,
+      "center_offset": [0.50, 0.0, -0.20]
+    },
+    "pcd_00048": {
+      "azimuth": 128,
+      "elevation": 55,
+      "parallel_scale_factor": 0.48,
+      "center_offset": [-0.15, 0.0, 0.1]
+    },
+    "pcd_00097": {
+      "azimuth": 290,
+      "elevation": 40,
+      "parallel_scale_factor": 0.60,
+      "center_offset": [0.50, 0.0, 0.10]
+    }
+  },
+  "scene0092_01": {
+    "pcd_00050": {
+      "azimuth": -10,
+      "elevation": 55,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [-0.30, 0.0, -0.35]
+    }
+  },
+  "scene0101_02": {
+    "pcd_00035": {
+      "azimuth": 120,
+      "elevation": 65,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [-0.15, 0.0, 0.15]
+    }
+  },
+  "scene0107_00": {
+    "pcd_00033": {
+      "azimuth": 155,
+      "elevation": 60,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.0]
+    }
+  },
+  "scene0111_00": {
+    "pcd_00046": {
+      "azimuth": 110,
+      "elevation": 55,
+      "parallel_scale_factor": 0.48,
+      "center_offset": [0.0, 0.0, 0.06], 
+      "_note": "offset: [0.0, 0.0, 0.0] or [0, 0, 0.06]; factor: 0.45 or 0.48",
+      "zoom": { 
+        "parallel_scale_factor": 0.13,
+        "center_offset": [0.45, 0.0, -1.1],
+        "image_size": [1200, 1800]
+      }
+    }
+  },
+  "scene0168_01": {
+    "pcd_00070": {
+      "azimuth": 145,
+      "elevation": 70,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.065]
+    }
+  },
+  "scene0234_00": { 
+    "pcd_00053": { 
+      "azimuth": 250,
+      "elevation": 63,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.2, 0.0, 0.0], 
+      "_note": "offset: [0.2, 0.0, 0.0] or [0.4, 0.0, -0.30]; factor: 0.35 or 0.45"
+    }
+  },
+  "scene0253_00": { 
+    "pcd_00012": { 
+      "azimuth": 30,
+      "elevation": 70,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.1]
+    }, 
+    "pcd_00070": { 
+      "azimuth": 30,
+      "elevation": 70,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.1]
+    }, 
+    "pcd_00072": { 
+      "azimuth": 30,
+      "elevation": 70,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.1]
+    }
+  },
+  "scene0271_00": {
+      "pcd_00094": {
+        "azimuth": 105,
+      "elevation": 65,
+      "parallel_scale_factor": 0.5,
+      "center_offset": [0.0, 0.0, 0.15]
+    }
+  },
+  "scene0271_01": {
+      "pcd_00060": {
+        "azimuth": -125,
+      "elevation": 50,
+      "parallel_scale_factor": 0.5,
+      "center_offset": [-0.20, 0.0, 0.15]
+    }, 
+    "pcd_00061": {
+        "azimuth": -75,
+      "elevation": 55,
+      "parallel_scale_factor": 0.52,
+      "center_offset": [0.1, 0.0, 0.30]
+    }
+  },
+  "scene0273_01": {
+      "pcd_00087": { 
+        "azimuth": -75,
+      "elevation": 70,
+      "parallel_scale_factor": 0.43,
+      "center_offset": [0.45, 0.0, 0.15]
+    }
+  },
+  "scene0280_01": {
+      "pcd_00059": { 
+      "azimuth": -5, 
+      "elevation": 45,
+      "parallel_scale_factor": 0.52,
+      "center_offset": [0.0, 0.0, 0.1],
+      "_note": "offset: [0.0, 0.0, 0.1] or [0.0, 0.0, -0.05]",
+      "zoom": {
+        "parallel_scale_factor": 0.18,
+        "center_offset": [0.15, -1.15, -0.5],
+        "image_size": [1200, 1600] 
+      }
+    } 
+  },
+  "scene0292_02": {
+    "pcd_00012": {
+      "azimuth": 45,
+      "elevation": 45,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, 0.0]
+    }
+  },
+  "scene0296_01": {
+    "pcd_00012": {
+      "azimuth": 125,
+      "elevation": 60,
+      "parallel_scale_factor": 0.52,
+      "center_offset": [-0.2, 0.0, 0.26]
+    }
+  },
+  "scene0298_00": {
+    "pcd_00091": {
+      "azimuth": 185,
+      "elevation": 60,
+      "parallel_scale_factor": 0.42,
+      "center_offset": [-0.2, 0.0, 0.15]
+    }
+  },
+  "scene0362_01": {
+    "pcd_00070": {
+      "azimuth": 310,
+      "elevation": 55,
+      "parallel_scale_factor": 0.55,
+      "center_offset": [0.0, 0.0, 0.12]
+    }
+  },
+  "scene0416_03": {
+    "pcd_00012": {
+      "azimuth": 205,
+      "elevation": 60,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.3, 0.0, 0.045]
+    }
+  },
+  "scene0468_00": {
+    "pcd_00020": {
+      "azimuth": 255,
+      "elevation": 70,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.065]
+    }
+  },
+  "scene0525_00": {
+    "pcd_00005": {
+      "azimuth": -55,
+      "elevation": 50,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.06],
+      "_note": "offset: [0.0, 0.0, 0.0] or [0, 0, 0.06]",
+      "zoom": {
+        "parallel_scale_factor": 0.18,
+        "center_offset": [-0.70, -1.15, 0.9],
+        "image_size": [1200, 1800] 
+      }
+    }
+  },
+  "scene0623_00": {
+    "pcd_00059": {
+      "azimuth": -10,
+      "elevation": 45,
+      "parallel_scale_factor": 0.5,
+      "center_offset": [0.0, 0.0, -0.1]
+    }
+  },
+  "scene0626_01": {
+    "pcd_00050": {
+      "azimuth": 230,
+      "elevation": 35,
+      "parallel_scale_factor": 0.5,
+      "center_offset": [0.5, 0.0, -0.65]
+    }
+  },
+  "scene0640_02": {
+    "pcd_00020": {  
+      "azimuth": -70,
+      "elevation": 55,
+      "parallel_scale_factor": 0.43,
+      "center_offset": [0.2, 0.0, 0.2]
+    }, 
+    "pcd_00035": {
+      "azimuth": -70,
+      "elevation": 40,
+      "parallel_scale_factor": 0.40,
+      "center_offset": [0.15, 0.0, 0.0], 
+      "_note": "azimuth: -100 or -70, factor: 0.45 or 0.43"
+    }
+  },
+  "scene0673_02": {
+    "pcd_00035": {
+      "azimuth": -45,
+      "elevation": 45,
+      "parallel_scale_factor": 0.50,
+      "center_offset": [0.0, 0.0, -0.1]
+    }
+  },
+  "scene0706_00": {
+    "pcd_00012": {
+      "azimuth": 45,
+      "elevation": 50,
+      "parallel_scale_factor": 0.45,
+      "center_offset": [0.0, 0.0, 0.065]
+    }
+  }
+}

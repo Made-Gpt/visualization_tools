@@ -1,0 +1,39 @@
+# Git helper scripts
+.git_init.sh
+.git_update.sh
+
+# Backup files
+voxels/backup/
+
+# Experiment data
+experiment/effect/
+experiment/logs/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/ 
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Output files
+# *.png
+# *.gif
+# *.mp4
+# *.avi

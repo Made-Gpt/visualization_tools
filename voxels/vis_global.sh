@@ -12,8 +12,8 @@ PCD_EXT=".ply"
  
 # Target scenes to process
 PCD_SCENES=("scene0000_00" "scene0006_02" "scene0024_00" "scene0030_01" "scene0040_00" "scene0072_00" "scene0089_02" "scene0092_01" 
-            "scene0101_02" "scene0106_02" "scene0107_00" "scene0111_00" "scene0168_01" "scene0169_01" "scene0173_00" "scene0272_01" "scene0362_01" 
-            "scene0468_00" "scene0623_00" "scene0626_01" "scene0673_02" "scene0706_00" 
+            "scene0101_02" "scene0106_02" "scene0107_00" "scene0111_00" "scene0168_01" "scene0169_01" "scene0173_00" "scene0272_01" 
+            "scene0362_01" "scene0468_00" "scene0500_00" "scene0623_00" "scene0626_01" "scene0673_02" "scene0706_00" 
             ) 
 
 # "scene0000_00" "scene0003_02" "scene0006_02" "scene0010_00" "scene0013_01" 

@@ -9,7 +9,7 @@ from plyfile import PlyData, PlyElement
 from pathlib import Path
 import colorsys
 import scipy.stats
- 
+
 def gaussian_mixture_filter(entropies: np.ndarray, 
                             n_components: int = 2,
                             remove_component: int = -1):

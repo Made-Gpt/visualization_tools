@@ -14,16 +14,16 @@ def remove_white_background(image_path):
     img = Image.open(image_path).convert("RGBA")
     data = np.array(img)
     
-    # set background as taransparent 
+    # set background as transparent 
     white_areas = (data[:, :, 0] > 240) & (data[:, :, 1] > 240) & (data[:, :, 2] > 240)
-    data[white_areas] = [255, 255, 255, 0]  # taransparent
+    data[white_areas] = [255, 255, 255, 0]  # transparent
     
     # processed 
     new_img = Image.fromarray(data, 'RGBA')
     new_img.save(image_path.replace('.png', '_t.png'))
 
 
-def load_camera_config(config_path="camera_config.json"):
+def load_camera_config(config_path="camera_config_global.json"):
     """Load camera configuration from JSON file"""
     try:
         with open(config_path, 'r') as f:
@@ -38,46 +38,58 @@ def load_camera_config(config_path="camera_config.json"):
         return None
 
 
-def get_camera_params(config, scene_name, pcd_name, use_zoom=False):
-    """Get camera parameters for specific scene and pcd"""
+def get_camera_params(config, scene_name, use_zoom=False):
+    """Get camera parameters for specific scene (global view - top down)"""
     if config is None:
-        return config.get('default', {})
+        default_params = {
+            'azimuth': 0,
+            'elevation': 0,
+            'parallel_scale_factor': 0.6,
+            'center_offset': [0.0, 0.0, 0.0],
+            'image_size': [1600, 1600]
+        }
+        return default_params
     
     # Try to get scene-specific config
     if scene_name in config:
-        scene_config = config[scene_name]
-        if pcd_name in scene_config:
-            base_params = scene_config[pcd_name].copy()
-            
-            # If zoom is requested and zoom config exists
-            if use_zoom and 'zoom' in base_params:
-                print(f"[INFO] Using ZOOM config for {scene_name}/{pcd_name}")
-                zoom_config = base_params['zoom']
-                # Keep azimuth and elevation from base, override zoom-specific params
-                result_params = {
-                    'azimuth': base_params.get('azimuth', 75),
-                    'elevation': base_params.get('elevation', 50),
-                    'parallel_scale_factor': zoom_config.get('parallel_scale_factor', 0.25),
-                    'center_offset': zoom_config.get('center_offset', [0.0, 0.0, 0.0]),
-                    'image_size': zoom_config.get('image_size', [1600, 1200])
-                }
-                return result_params
+        base_params = config[scene_name].copy()
+        
+        # If zoom is requested and zoom config exists
+        if use_zoom and 'zoom' in base_params:
+            print(f"[INFO] Using ZOOM config for {scene_name}")
+            zoom_config = base_params['zoom']
+            # Use azimuth/elevation from zoom if present, otherwise from base
+            result_params = {
+                'azimuth': zoom_config.get('azimuth', base_params.get('azimuth', 0)),
+                'elevation': zoom_config.get('elevation', base_params.get('elevation', 0)),
+                'parallel_scale_factor': zoom_config.get('parallel_scale_factor', 0.3),
+                'center_offset': zoom_config.get('center_offset', [0.0, 0.0, 0.0]),
+                'image_size': zoom_config.get('image_size', [2400, 2400])
+            }
+            return result_params
+        else:
+            if use_zoom:
+                print(f"[WARNING] Zoom requested but no zoom config found for {scene_name}, using normal view")
             else:
-                if use_zoom:
-                    print(f"[WARNING] Zoom requested but no zoom config found for {scene_name}/{pcd_name}, using normal view")
-                else:
-                    print(f"[INFO] Using camera config for {scene_name}/{pcd_name}")
-                # Add default image_size if not present
-                if 'image_size' not in base_params:
-                    base_params['image_size'] = [1600, 1200]
-                return base_params
+                print(f"[INFO] Using camera config for {scene_name}")
+            # Add default image_size if not present
+            if 'image_size' not in base_params:
+                base_params['image_size'] = [1600, 1600]
+            return base_params
     
-    # Fall back to default
-    print(f"[INFO] No specific config for {scene_name}/{pcd_name}, using default")
-    default_params = config.get('default', {})
+    # Fall back to default (top-down view)
+    print(f"[INFO] No specific config for {scene_name}, using default top-down view")
+    default_params = config.get('default', {
+        'azimuth': 0,
+        'elevation': 0,
+        'parallel_scale_factor': 0.6,
+        'center_offset': [0.0, 0.0, 0.0],
+        'image_size': [1600, 1600]
+    })
     if 'image_size' not in default_params:
-        default_params['image_size'] = [1600, 1200]
+        default_params['image_size'] = [1600, 1600]
     return default_params
+
 
 def setup_camera_view(voxel_centers, camera_params):
     """Setup camera view for the scene using camera parameters from config"""
@@ -97,14 +109,14 @@ def setup_camera_view(voxel_centers, camera_params):
     print(f"[INFO] Scene size: {scene_size:.2f}")
     print(f"[INFO] Scene bounds: X=[{min_bounds[0]:.2f}, {max_bounds[0]:.2f}], Y=[{min_bounds[1]:.2f}, {max_bounds[1]:.2f}], Z=[{min_bounds[2]:.2f}, {max_bounds[2]:.2f}]")
     
-    # Always use parallel projection
+    # Always use parallel projection for top-down view
     mlab.gcf().scene.camera.parallel_projection = True
-    print("[INFO] Parallel projection enabled")
+    print("[INFO] Parallel projection enabled (top-down view)")
     
-    # Get camera parameters
-    azimuth = camera_params.get('azimuth', 75)
-    elevation = camera_params.get('elevation', 50)
-    parallel_scale_factor = camera_params.get('parallel_scale_factor', 0.5)
+    # Get camera parameters (default to top-down view)
+    azimuth = camera_params.get('azimuth', 0)
+    elevation = camera_params.get('elevation', 0)
+    parallel_scale_factor = camera_params.get('parallel_scale_factor', 0.6)
     
     # Set view angle and focal point
     mlab.view(azimuth=azimuth, elevation=elevation, focalpoint=center)
@@ -115,6 +127,7 @@ def setup_camera_view(voxel_centers, camera_params):
     
     print(f"[INFO] Camera view: azimuth={azimuth}, elevation={elevation}, parallel_scale={parallel_scale:.2f}")   
   
+
 def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=True, save_image=False, 
                                          output_path=None, camera_params=None, image_size=None):
     """Visualize point cloud with original colors and voxelization"""
@@ -141,9 +154,9 @@ def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=Tru
             voxel_dict[key]['colors'].append(colors[idx])
             voxel_dict[key]['count'] += 1
  
-    # Get image size from parameters or use default
+    # Get image size from parameters or use default (square for top-down)
     if image_size is None:
-        image_size = [1600, 1200]
+        image_size = [1600, 1600]
     
     # Create visualization 
     mlab.figure(size=tuple(image_size), bgcolor=(1.0, 1.0, 1.0))  # White background
@@ -160,8 +173,7 @@ def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=Tru
         if color_key not in color_groups:
             color_groups[color_key] = []
         
-        # Calculate voxel center - this is the key fix
-        # Use the center of the voxel grid cell
+        # Calculate voxel center
         center = np.array(voxel_idx) * voxel_size + voxel_size / 2
         color_groups[color_key].append(center)
         all_voxel_centers.append(center)
@@ -191,9 +203,15 @@ def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=Tru
 
     print(f"[INFO] Rendered {len(all_voxel_centers)} voxels in {len(color_groups)} color groups")
     
-    # Setup camera view using camera parameters
+    # Setup camera view using camera parameters (top-down)
     if camera_params is None:
-        camera_params = {'azimuth': 75, 'elevation': 50, 'parallel_scale_factor': 0.5, 'center_offset': [0.0, 0.0, 0.0]}
+        camera_params = {
+            'azimuth': 0, 
+            'elevation': 0, 
+            'parallel_scale_factor': 0.6, 
+            'center_offset': [0.0, 0.0, 0.0],
+            'image_size': [1600, 1600]
+        }
     setup_camera_view(all_voxel_centers, camera_params)
     
     # Save image if needed
@@ -201,7 +219,7 @@ def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=Tru
         # Create directory if it doesn't exist
         output_path.parent.mkdir(parents=True, exist_ok=True)
         if image_size is None:
-            image_size = [1600, 1200]
+            image_size = [1600, 1600]
         mlab.savefig(str(output_path), size=tuple(image_size))
         remove_white_background(str(output_path))
         print(f"[INFO] Image saved to: {output_path}")
@@ -213,12 +231,13 @@ def visualize_voxels_with_original_colors(pcd_path, voxel_size=0.08, show_3d=Tru
     else:
         print("[INFO] Skipping 3D interface, only saving image...")
 
+
 if __name__ == "__main__":
     import sys
 
     # Get path info from command line
-    if len(sys.argv) != 9:
-        print("Usage: python3 vis_occ.py <pcd_root> <pcd_fold> <pcd_scene> <pcd_name> <pcd_ext> <output_folder> <show_3d> <use_zoom>")
+    if len(sys.argv) != 9: 
+        print("Usage: python3 vis_occ_glob.py <pcd_root> <pcd_fold> <pcd_scene> <pcd_name> <pcd_ext> <output_folder> <show_3d> <use_zoom>")
         sys.exit(1)
     
     pcd_root = Path(sys.argv[1])
@@ -230,24 +249,25 @@ if __name__ == "__main__":
     show_3d = sys.argv[7].lower() in ['true', '1', 'yes', 'y']
     use_zoom = sys.argv[8].lower() in ['true', '1', 'yes', 'y']
     
+    # For global view, read frame-specific file but with top-down view
     pcd_file = pcd_root / pcd_fold / pcd_scene / (pcd_name + pcd_ext)
     
     # Load camera configuration
-    config_path = Path(__file__).parent / "camera_config.json"
+    config_path = Path(__file__).parent / "camera_config_global.json"
     camera_config = load_camera_config(config_path)
-    camera_params = get_camera_params(camera_config, pcd_scene, pcd_name, use_zoom)
+    camera_params = get_camera_params(camera_config, pcd_scene, use_zoom)
     
     # Extract image size from camera params
-    image_size = camera_params.get('image_size', [1600, 1200])
+    image_size = camera_params.get('image_size', [1600, 1600])
     
     # Set up output path
     img_ext = ".png"
     output_dir = pcd_root / output_folder / pcd_scene
     # Add suffix to filename if zoom is used
     if use_zoom:
-        output_path = output_dir / (pcd_name + "_zoom" + img_ext)
+        output_path = output_dir / (pcd_name + "_global_zoom" + img_ext)
     else:
-        output_path = output_dir / (pcd_name + img_ext)
+        output_path = output_dir / (pcd_name + "_global" + img_ext)
     
     # Run visualization
     visualize_voxels_with_original_colors(
