@@ -2,7 +2,7 @@
 
 This repository contains visualization tools for 3D semantic scene completion and training analysis.
 
-## 🛠️ Environment Setup
+## 🦉 Environment Setup
 
 ### Base Environment (renderpy)
 
@@ -16,18 +16,6 @@ conda activate renderpy
 # Install required packages
 pip install matplotlib numpy Pillow seaborn pandas open3d plyfile scipy tqdm mitsuba
 ```
-
-**Required packages:**
-- `matplotlib` - Plotting and visualization
-- `numpy` - Numerical computations
-- `Pillow` - Image processing
-- `seaborn` - Statistical data visualization
-- `pandas` - Data manipulation
-- `open3d` - Point cloud I/O
-- `plyfile` - PLY file reading/writing
-- `scipy` - Scientific computing
-- `tqdm` - Progress bars
-- `mitsuba` - Physically-based renderer for Gaussian splatting
 
 ### Mayavi Environment (mayavi_clean)
 
@@ -46,15 +34,9 @@ conda install -c conda-forge open3d
 pip install Pillow
 ```
 
-**Required packages:**
-- `mayavi` - 3D scientific visualization
-- `open3d` - Point cloud I/O
-- `Pillow` - Image processing
-- `PyQt5` - GUI backend (installed automatically with mayavi)
-
 ---
 
-## ✅ Testing Your Installation
+## 🐦 Testing Your Installation
 
 ### Test Mayavi Environment
 
@@ -103,7 +85,7 @@ mlab.show()
 
 ---
 
-## 📊 Usage
+## 🦚 Usage
 
 ### Training & Efficiency Analysis ([experiment/](experiment/README.md))
 
@@ -148,7 +130,7 @@ conda activate renderpy
 bash vis_gs.sh
 bash vis_gs_glob.sh
 ``` 
- 
+
 **Matplotlib (lightweight):**
 ```bash
 cd gaussian/matplotlib
