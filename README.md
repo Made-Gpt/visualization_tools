@@ -91,7 +91,7 @@ To test the visualization tools, download example data from OneDrive:
 
 ### Quick Links
 
-- **All Data (Recommended)**: [Download All](https://entuedu-my.sharepoint.com/:f:/g/personal/rqian003_e_ntu_edu_sg/IgCoDeLoUMbWRZk4DHfXO4c7Ael43smbSmxBSpn6XioV82c?e=X10Pro) (~2GB)
+- **All Data (Recommended)**: [Download All](https://entuedu-my.sharepoint.com/:f:/g/personal/rqian003_e_ntu_edu_sg/IgCoDeLoUMbWRZk4DHfXO4c7Ael43smbSmxBSpn6XioV82c?e=X10Pro)
   - Includes: RGB, Gaussian, and Voxel data
 
 ### Individual Downloads
