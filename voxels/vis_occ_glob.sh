@@ -123,7 +123,7 @@ echo "  Output: $OUTPUT_DIR"
 echo "  Zoom Mode: $use_zoom"
 echo "  3D Interface: $show_3d"
 echo "  View: Bird's Eye (elevation=0°)"
-echo "  Projection: Parallel (固定)"
+echo "  Projection: Parallel (Fixed)"
 echo ""
 
 # Run Python script

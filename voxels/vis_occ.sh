@@ -143,7 +143,7 @@ echo "  Frame: ${PCD_NAMES[name_idx]}"
 echo "  Output: $OUTPUT_DIR"
 echo "  Zoom Mode: $use_zoom"
 echo "  3D Interface: $show_3d"
-echo "  Projection: Parallel (固定)"
+echo "  Projection: Parallel (Fixed)"
 echo ""
 
 # Run Python script

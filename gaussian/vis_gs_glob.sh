@@ -3,7 +3,7 @@
 # 3D Gaussian Rendering with Mitsuba v3 - Bird's Eye View (Global)
 # Usage: ./vis_gs_glob.sh
  
-# 配置参数 
+# Configuration parameters
 PLY_ROOT="/media/made/MyPassport/DATASET/ScanNet++/outputs/scene_occ/exp/miniline"  # mini
 PLY_FOLD="vis_occ_gaussian_cache"  
 OUTPUT_FOLDER="vis_mitsuba_gs"  
@@ -15,23 +15,23 @@ PCD_SCENES=("scene0000_00" "scene0003_02" "scene0006_02" "scene0025_00" "scene00
 PCD_NAMES=("pcd_00005" "pcd_00012" "pcd_00018" "pcd_00020" "pcd_00033" "pcd_00035" "pcd_00044" "pcd_00046" 
            "pcd_00050" "pcd_00053" "pcd_00059" "pcd_00063" "pcd_00070" "pcd_00076" "pcd_00084" "pcd_00087" "pcd_00094") 
 
-# 渲染参数 
+# Rendering parameters
 WIDTH=1200  # 1024, 1600, 1600 
 HEIGHT=900  # 1024, 1600, 1200 
 SPP=128  # Samples per pixel
 MAX_GAUSSIANS=15000  # Maximum gaussians per scene
  
-# 椭球网格质量参数 (Higher values = better quality, slower rendering)
+# Ellipsoid mesh quality parameters (Higher values = better quality, slower rendering)
 N_THETA=24  # Longitude divisions
 N_PHI=16   # Latitude divisions
   
-# 光照参数 (Academic quality lighting)  
+# Lighting parameters (Academic quality lighting)
 AMBIENT_LIGHT=0.1    # Environment lighting strength
 MAIN_LIGHT=3.0       # Primary directional light strength
 FILL_LIGHT=2.5       # Fill light strength
 TOP_LIGHT=1.0        # Top light strength
 
-# 函数：选择场景 
+# Function: Select scene
 select_scene() { 
     echo "Available scenes:"
     for i in "${!PCD_SCENES[@]}"; do
@@ -53,7 +53,7 @@ select_scene() {
     done 
 }
 
-# 函数：选择文件名
+# Function: Select PCD filename
 select_pcd_name() {
     echo "Available PCD names:"
     for i in "${!PCD_NAMES[@]}"; do
@@ -75,7 +75,7 @@ select_pcd_name() {
     done
 } 
 
-# 检查基础路径是否存在
+# Check if base path exists
 if [ ! -d "$PLY_ROOT/$PLY_FOLD" ]; then
     echo "Error: Input folder $PLY_ROOT/$PLY_FOLD does not exist!"
     echo "Please check PLY_ROOT and PLY_FOLD parameters."
@@ -95,7 +95,7 @@ echo "  - Ellipsoid mesh: ${N_THETA}x${N_PHI} (theta x phi divisions)"
 echo "  - Lighting: Ambient=${AMBIENT_LIGHT}, Main=${MAIN_LIGHT}, Fill=${FILL_LIGHT}, Top=${TOP_LIGHT}"
 echo ""
 
-# 选择场景和PCD名称
+# Select scene and PCD name
 select_scene
 select_pcd_name
 
@@ -103,10 +103,10 @@ echo ""
 echo "Selected scenes: ${SELECTED_SCENES[@]}"
 echo "Selected PCD names: ${SELECTED_NAMES[@]}"
 
-# 创建输出文件夹
+# Create output folder
 mkdir -p "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER"
 
-# 检查Python环境和依赖
+# Check Python environment and dependencies
 echo ""
 echo "Checking dependencies..." 
 python3 -c "import mitsuba as mi; print(f'Mitsuba version: {mi.__version__}')" 2>/dev/null
@@ -130,11 +130,11 @@ fi
 echo ""
 echo "Starting Gaussian rendering (Bird's Eye View)..."
 
-# 渲染每个选定的场景和PCD组合
+# Render each selected scene and PCD combination
 TOTAL_JOBS=0
 COMPLETED_JOBS=0
 
-# 计算总任务数
+# Calculate total jobs
 for scene in "${SELECTED_SCENES[@]}"; do
     for pcd_name in "${SELECTED_NAMES[@]}"; do
         TOTAL_JOBS=$((TOTAL_JOBS + 1))
@@ -144,26 +144,26 @@ done
 echo "Total rendering jobs: $TOTAL_JOBS"
 echo ""
 
-# 执行渲染任务
+# Execute rendering tasks
 for scene in "${SELECTED_SCENES[@]}"; do
     for pcd_name in "${SELECTED_NAMES[@]}"; do 
         COMPLETED_JOBS=$((COMPLETED_JOBS + 1))
         
-        # 构建输入路径: PLY_ROOT/PLY_FOLD/SCENE/PCD_NAME
+        # Build input path: PLY_ROOT/PLY_FOLD/SCENE/PCD_NAME
         INPUT_PATH="$PLY_ROOT/$PLY_FOLD/$scene"
         PLY_FILE="$pcd_name$PLY_EXT"
         FULL_PLY_PATH="$INPUT_PATH/$PLY_FILE"
         
-        # 构建输出路径: OUTPUT_FOLDER/SCENE/PCD_NAME_glob.exr
+        # Build output path: OUTPUT_FOLDER/SCENE/PCD_NAME_glob.exr
         SCENE_OUTPUT_DIR="$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER/$scene"
-        mkdir -p "$SCENE_OUTPUT_DIR"  # 创建场景输出目录
+        mkdir -p "$SCENE_OUTPUT_DIR"  # Create scene output directory
         OUTPUT_PATH="$SCENE_OUTPUT_DIR/${pcd_name}_glob.exr" 
         
         echo "[$COMPLETED_JOBS/$TOTAL_JOBS] Processing: $scene/$pcd_name (Bird's Eye)"
         echo "  Input: $FULL_PLY_PATH"
         echo "  Output: $OUTPUT_PATH"
         
-        # 检查输入文件是否存在
+        # Check if input file exists
         if [ ! -f "$FULL_PLY_PATH" ]; then
             echo "  ⚠️  Warning: PLY file not found: $FULL_PLY_PATH"
             echo "  Skipping..."
@@ -171,14 +171,14 @@ for scene in "${SELECTED_SCENES[@]}"; do
             continue
         fi 
         
-        # 检查输出文件是否已存在
+        # Check if output file already exists
         if [ -f "$OUTPUT_PATH" ]; then
             echo "  ℹ️  Output already exists, skipping..."
             echo ""
             continue
         fi
         
-        # 运行Python脚本渲染单个文件
+        # Run Python script to render single file
         python3 vis_gs_glob.py \
             --input_file "$FULL_PLY_PATH" \
             --output_file "$OUTPUT_PATH" \
@@ -202,7 +202,7 @@ for scene in "${SELECTED_SCENES[@]}"; do
     done
 done
 
-# 检查渲染结果
+# Check rendering results
 echo ""
 echo "=== Rendering Complete ==="
 echo "Results saved to: $PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER"
@@ -210,11 +210,11 @@ echo "File count: $(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*_glob.ex
 echo "Directory structure:"
 find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -type d 2>/dev/null | sort | sed "s|$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER|  .|g"
 
-# 检查是否有任何成功的渲染
+# Check if any successful rendering
 EXR_COUNT=$(find "$PLY_ROOT/$OUTPUT_FOLDER/$MID_FOLDER" -name "*_glob.exr" 2>/dev/null | wc -l)
 if [ "$EXR_COUNT" -gt 0 ]; then
 
-    # 可选：转换EXR到PNG用于预览 (只转换本次运行的文件)
+    # Optional: Convert EXR to PNG for preview (only convert files from current run)
     echo "" 
     read -p "Convert current batch EXR files to PNG for preview? (y/n): " convert_choice
     if [[ $convert_choice =~ ^[Yy]$ ]]; then

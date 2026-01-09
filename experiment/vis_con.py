@@ -13,11 +13,11 @@ import scipy.stats
 def gaussian_mixture_filter(entropies: np.ndarray, 
                             n_components: int = 2,
                             remove_component: int = -1):
-        # 拟合高斯混合模型  
+        # Fit Gaussian mixture model
         gmm = GaussianMixture(n_components=n_components, random_state=42)
         labels = gmm.fit_predict(entropies)
         
-        # 获取每个分量的统计信息
+        # Get statistics for each component
         component_means = []
         for i in range(n_components):
             component_mask = labels == i
@@ -25,11 +25,11 @@ def gaussian_mixture_filter(entropies: np.ndarray,
                 component_mean = entropies[component_mask].mean()
                 component_means.append((i, component_mean, component_mask.sum()))
         
-        # 按均值排序，移除指定分量
-        component_means.sort(key=lambda x: x[1])  # 按均值排序
+        # Sort by mean, remove specified component
+        component_means.sort(key=lambda x: x[1])  # Sort by mean
 
         if remove_component == -1:
-            # 移除最高熵的分量
+            # Remove highest entropy component
             remove_idx = component_means[-1][0]
         else:
             remove_idx = remove_component
@@ -37,81 +37,81 @@ def gaussian_mixture_filter(entropies: np.ndarray,
         keep_mask = labels != remove_idx
         
         removed_count = (~keep_mask).sum()
-        print(f"GMM筛选: 识别到{n_components}个分量，移除分量{remove_idx}")
-        print(f"分量统计: {[(f'分量{i}: mean={mean:.3f}, count={count}') for i, mean, count in component_means]}")
-        print(f"移除: {removed_count} ({removed_count/len(entropies)*100:.1f}%)")
+        print(f"GMM filter: Identified {n_components} components, removing component {remove_idx}")
+        print(f"Component statistics: {[(f'Component{i}: mean={mean:.3f}, count={count}') for i, mean, count in component_means]}")
+        print(f"Removed: {removed_count} ({removed_count/len(entropies)*100:.1f}%)")
         
         return keep_mask
 
 
 def fast_kmeans_entropy_filter(entropies, n_clusters=2, max_iters=30, tolerance=1e-6):
-    """使用优化的K-Means进行熵过滤，更快更稳定"""
+    """Use optimized K-Means for entropy filtering, faster and more stable"""
     
-    # 1. 预处理：移除异常值，提升稳定性
+    # 1. Preprocessing: Remove outliers, improve stability
     entropy_tensor = torch.tensor(entropies.flatten(), dtype=torch.float32, device="cuda:0")
     
-    # 移除极端异常值（可选）
+    # Remove extreme outliers (optional)
     q1, q99 = torch.quantile(entropy_tensor, torch.tensor([0.01, 0.99], device="cuda:0"))
     valid_mask = (entropy_tensor >= q1) & (entropy_tensor <= q99)
-    if valid_mask.sum() < len(entropy_tensor) * 0.9:  # 如果异常值太多，不过滤
+    if valid_mask.sum() < len(entropy_tensor) * 0.9:  # If too many outliers, don't filter
         valid_mask = torch.ones_like(entropy_tensor, dtype=torch.bool)
     
     valid_entropies = entropy_tensor[valid_mask]
     n_valid = len(valid_entropies)
     
     if n_valid < n_clusters:
-        print(f"Warning: 有效数据点({n_valid})少于聚类数({n_clusters})，使用简单阈值过滤")
+        print(f"Warning: Valid data points ({n_valid}) less than number of clusters ({n_clusters}), using simple threshold filtering")
         threshold = torch.median(entropy_tensor)
         keep_mask = entropy_tensor <= threshold
         return keep_mask.cpu().numpy()
     
-    # 2. 智能初始化：使用K-means++思想
+    # 2. Smart initialization: Use K-means++ idea
     centers = torch.zeros(n_clusters, device="cuda:0", dtype=torch.float32)
     
     if n_clusters == 2:
-        # 对于二分类，使用更稳定的初始化
+        # For binary classification, use more stable initialization
         centers[0] = torch.quantile(valid_entropies, 0.2)
         centers[1] = torch.quantile(valid_entropies, 0.8)
     else:
-        # K-means++风格初始化
+        # K-means++ style initialization
         centers[0] = valid_entropies[torch.randint(0, n_valid, (1,))]
         for i in range(1, n_clusters):
-            # 计算到最近中心的距离
+            # Calculate distance to nearest center
             distances = torch.min(torch.abs(valid_entropies.unsqueeze(1) - centers[:i].unsqueeze(0)), dim=1)[0]
-            # 按距离加权选择下一个中心
+            # Select next center weighted by distance
             probs = distances / distances.sum()
             centers[i] = valid_entropies[torch.multinomial(probs, 1)]
     
-    # 3. 优化的K-means主循环
+    # 3. Optimized K-means main loop
     prev_labels = torch.zeros(n_valid, dtype=torch.long, device="cuda:0")
     
     for iteration in range(max_iters):
-        # 向量化距离计算 (n_points, n_clusters)
+        # Vectorized distance calculation (n_points, n_clusters)
         distances = torch.abs(valid_entropies.unsqueeze(1) - centers.unsqueeze(0))
         labels = torch.argmin(distances, dim=1)
         
-        # 早期停止检查
+        # Early stopping check
         if iteration > 0 and torch.equal(labels, prev_labels):
             break
         
         prev_labels = labels.clone()
         
-        # 批量更新所有中心
+        # Batch update all centers
         old_centers = centers.clone()
         for k in range(n_clusters):
             mask = labels == k
             if mask.sum() > 0:
                 centers[k] = valid_entropies[mask].mean()
-            # 如果某个聚类为空，重新随机初始化
+            # If cluster is empty, randomly reinitialize
             else:
                 centers[k] = valid_entropies[torch.randint(0, n_valid, (1,))]
         
-        # 收敛检查
+        # Convergence check
         center_shift = torch.norm(centers - old_centers)
         if center_shift < tolerance:
             break
     
-    # 4. 选择最优聚类（低熵）
+    # 4. Select optimal cluster (low entropy)
     cluster_stats = []
     for k in range(n_clusters):
         mask = labels == k
@@ -121,67 +121,67 @@ def fast_kmeans_entropy_filter(entropies, n_clusters=2, max_iters=30, tolerance=
             cluster_std = valid_entropies[mask].std().item() if mask.sum() > 1 else 0.0
             cluster_stats.append((k, cluster_mean, cluster_size, cluster_std))
     
-    # 按均值排序，选择低熵聚类
+    # Sort by mean, select low entropy cluster
     cluster_stats.sort(key=lambda x: x[1])
     keep_component = cluster_stats[0][0]
     
-    # 5. 生成完整的keep_mask
+    # 5. Generate full keep_mask
     valid_keep_mask = labels == keep_component
     
-    # 将结果映射回原始数据
+    # Map result back to original data
     full_keep_mask = torch.zeros_like(entropy_tensor, dtype=torch.bool)
     full_keep_mask[valid_mask] = valid_keep_mask
     
-    # 对于被过滤掉的异常值，保守处理（保留低熵的）
+    # Conservative handling of filtered outliers (keep low entropy)
     if not torch.all(valid_mask):
         invalid_entropies = entropy_tensor[~valid_mask]
         threshold = centers[keep_component]
         full_keep_mask[~valid_mask] = invalid_entropies <= threshold
     
-    # 统计信息
+    # Statistics info
     filter_rate = (~full_keep_mask).sum().item() / len(full_keep_mask) * 100
     kept_mean = entropy_tensor[full_keep_mask].mean().item()
     
-    print(f"优化K-Means过滤: 保留聚类{keep_component} (中心:{cluster_stats[0][1]:.4f})")
-    print(f"  聚类统计: {[(f'C{i}:μ={mean:.3f},n={size},σ={std:.3f}') for i,mean,size,std in cluster_stats]}")
-    print(f"  过滤率: {filter_rate:.1f}%, 保留均值: {kept_mean:.4f}, 迭代: {iteration + 1}")
+    print(f"Optimized K-Means filter: Keep cluster {keep_component} (center: {cluster_stats[0][1]:.4f})")
+    print(f"  Cluster stats: {[(f'C{i}:μ={mean:.3f},n={size},σ={std:.3f}') for i,mean,size,std in cluster_stats]}")
+    print(f"  Filter rate: {filter_rate:.1f}%, Kept mean: {kept_mean:.4f}, Iterations: {iteration + 1}")
     
     return full_keep_mask.cpu().numpy()
 
 
-# 进一步优化：如果数据量很大，可以使用采样版本
+# Further optimization: If the data is large, use sampling version
 def fast_kmeans_entropy_filter_sampled(entropies, n_clusters=2, sample_ratio=0.1, max_iters=20):
-    """使用采样的K-Means进行熵过滤，适用于大数据集"""
+    """Use sampled K-Means for entropy filtering, suitable for large datasets"""
     
     entropy_tensor = torch.tensor(entropies.flatten(), dtype=torch.float32, device="cuda:0")
     n_total = len(entropy_tensor)
     
-    # 如果数据量小，直接使用完整版本
+    # If data is small, use full version directly
     if n_total < 10000:
         return fast_kmeans_entropy_filter(entropies, n_clusters, max_iters)
     
-    # 分层采样：保证各个熵值范围都有代表性
+    # Stratified sampling: Ensure all entropy value ranges are represented
     sorted_indices = torch.argsort(entropy_tensor)
     n_sample = max(1000, int(n_total * sample_ratio))
     
-    # 均匀采样
+    # Uniform sampling
     sample_indices = sorted_indices[torch.linspace(0, n_total-1, n_sample, dtype=torch.long)]
     sample_entropies = entropy_tensor[sample_indices]
     
-    # 在采样数据上运行K-means
+    # Run K-means on sampled data
     sample_keep_mask = fast_kmeans_entropy_filter(
         sample_entropies.cpu().numpy(), n_clusters, max_iters
     )
     
-    # 找到决策边界
+    # Find decision boundary
     kept_samples = sample_entropies[torch.tensor(sample_keep_mask, device="cuda:0")]
     threshold = kept_samples.max().item()
     
-    # 应用到全数据集
+    # Apply to full dataset
     full_keep_mask = entropy_tensor <= threshold
     
     filter_rate = (~full_keep_mask).sum().item() / len(full_keep_mask) * 100
-    print(f"采样K-Means过滤: 采样{n_sample}/{n_total}, 阈值:{threshold:.4f}, 过滤率:{filter_rate:.1f}%")
+    print(f"Sampled K-Means filter: Sampled {n_sample}/{n_total}, Threshold: {threshold:.4f}, Filter rate: {filter_rate:.1f}%")
     
     return full_keep_mask.cpu().numpy()
 
@@ -206,16 +206,16 @@ def calculate_entropy(semantic_probs):
 
 def compute_confidence_methods(entropy_values, opacity=None): 
     """
-    计算三种不同的置信度方法
+    Calculate three different confidence methods
     Args:
         entropy_values: numpy array of entropy values
     Returns:
-        dict: 包含三种方法的置信度结果
+        dict: Contains confidence results from three methods
     """  
-    # 转换为torch tensor  
+    # Convert to torch tensor
     entropy_tensor = torch.tensor(entropy_values, dtype=torch.float32)
     
-    # 方法1: 简单指数变换
+    # Method 1: Simple exponential transformation
     conf_exp = torch.exp(-entropy_tensor)
     
     # 方法2: 锐化sigmoid变换
@@ -296,7 +296,7 @@ def plot_confidence_comparison(entropy_values, opacity=None, output_path=None, f
     axes[1, 0].set_title('Method 3: Power Transform')
     axes[1, 0].grid(True, alpha=0.3)
     
-    # 5. 变换函数曲线对比
+    # 5. Transformation function curve comparison
     entropy_range = np.linspace(0, entropy_values.max(), 1000)
     conf_curves = compute_confidence_methods(entropy_range)
     

@@ -195,23 +195,23 @@
             <button onclick="showLoadedFile()" id="showFileBtn" style="background: #2196F3; display: none;">Show Loaded File</button>
             
             <div style="margin-top: 15px; padding: 10px; background: rgba(100, 100, 100, 0.3); border-radius: 4px; font-size: 12px;">
-                <strong>操作指南:</strong><br>
-                1. 点击"Generate Demo"体验或"Upload PLY File"<br>
-                2. 选择投影方式：透视或正交(平行)<br>
-                3. 使用预设视角快速切换视图<br>
-                4. 调整相机速度控制交互灵敏度<br>
-                <strong>视图控制 (Mayavi风格):</strong><br>
-                • 左键拖拽：旋转视图<br>
-                • 右键拖拽：缩放视图<br>
-                • 中键/Shift+左键：平移视图<br>
-                • 滚轮：缩放 | 双击：自动适配<br>fcheckButtonStatus
-                <strong>快捷键:</strong> R(重置) F(适配) 0(默认) 1(前) 2(侧) 3(顶)
+                <strong>User Guide:</strong><br>
+                1. Click "Generate Demo" to try or "Upload PLY File"<br>
+                2. Choose projection mode: Perspective or Orthographic (Parallel)<br>
+                3. Use preset viewpoints to quickly switch views<br>
+                4. Adjust camera speed to control interaction sensitivity<br>
+                <strong>View Control (Mayavi Style):</strong><br>
+                • Left click drag: Rotate view<br>
+                • Right click drag: Zoom view<br>
+                • Middle click/Shift+Left click: Pan view<br>
+                • Scroll wheel: Zoom | Double click: Auto fit<br>fcheckButtonStatus
+                <strong>Shortcuts:</strong> R(Reset) F(Fit) 0(Default) 1(Front) 2(Side) 3(Top)
             </div>
         </div>
         
                     <div id="info">
-            <div>Mayavi风格控制: 左键旋转 | 右键缩放 | 中键平移 | 滚轮缩放 | 双击适配 | 快捷键: R/F/0-3</div>
-            <div id="stats">点击"Generate Demo"体验或"Upload PLY File"加载数据</div>
+            <div>Mayavi Style Control: Left click Rotate | Right click Zoom | Middle click Pan | Scroll wheel Zoom | Double click Fit | Shortcuts: R/F/0-3</div>
+            <div id="stats">Click "Generate Demo" to try or "Upload PLY File" to load data</div>
             <div id="cameraInfo">Camera: (0.00, 0.00, 0.00) | View: Default</div>
             <div id="semanticStats"></div>
         </div>
@@ -553,13 +553,13 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    showStatus('正在解析PLY文件结构...', 'loading');
+                    showStatus('Parsing PLY file structure...', 'loading');
                     parsePLYFile(e.target.result);
-                    showStatus(`PLY文件加载成功！共 ${gaussianData ? gaussianData.length : 0} 个高斯`, 'success');
+                    showStatus(`PLY file loaded successfully! Total ${gaussianData ? gaussianData.length : 0} gaussians`, 'success');
                     
                     // Force immediate rendering after successful load
                     if (gaussianData && gaussianData.length > 0) {
-                        console.log('强制刷新场景渲染...');
+                        console.log('Forcing scene rendering refresh...');
                         renderer.render(scene, camera);
                         
                         // Show the "Show Loaded File" button
@@ -650,8 +650,8 @@
                 }
             }
             
-            console.log(`PLY文件信息: ${vertexCount} 个顶点, ${properties.length} 个属性`);
-            console.log('属性列表:', properties.map(p => p.name));
+            console.log(`PLY file info: ${vertexCount} vertices, ${properties.length} properties`);
+            console.log('Property list:', properties.map(p => p.name));
             
             // Check for semantic-related properties
             const semanticProps = properties.filter(p => 
@@ -659,7 +659,7 @@
                 p.name.toLowerCase().includes('label') || 
                 p.name.toLowerCase().includes('class')
             );
-            console.log('语义相关属性:', semanticProps);
+            console.log('Semantic related properties:', semanticProps);
             
             // Calculate stride based on properties
             let stride = 0;
@@ -780,13 +780,13 @@
                 // First, check if PLY has semantic labels directly (semantic, label, class, etc.)
                 if (gaussian.semantic !== undefined) {
                     bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.semantic)));
-                    if (index < 3) console.log(`使用semantic属性: ${gaussian.semantic} -> ${bestSemantic}`);
+                    if (index < 3) console.log(`Using semantic attribute: ${gaussian.semantic} -> ${bestSemantic}`);
                 } else if (gaussian.label !== undefined) {
                     bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.label)));
-                    if (index < 3) console.log(`使用label属性: ${gaussian.label} -> ${bestSemantic}`);
+                    if (index < 3) console.log(`Using label attribute: ${gaussian.label} -> ${bestSemantic}`);
                 } else if (gaussian.class !== undefined) {
                     bestSemantic = Math.max(0, Math.min(color_list.length - 1, Math.floor(gaussian.class)));
-                    if (index < 3) console.log(`使用class属性: ${gaussian.class} -> ${bestSemantic}`);
+                    if (index < 3) console.log(`Using class attribute: ${gaussian.class} -> ${bestSemantic}`);
                 } else {
                     // Process colors using your Python method: abs(colors) / sqrt(4*pi), then clip to [0,1]
                     const sqrt_4pi = Math.sqrt(4 * Math.PI);
@@ -841,7 +841,7 @@
             autoFitView();
             
             // Ensure rendering after data creation with multiple attempts
-            console.log('高斯数据创建完成，多次强制渲染...');
+            console.log('Gaussian data creation complete, forcing multiple renders...');
             
             // Immediate render
             renderer.render(scene, camera);
@@ -849,17 +849,17 @@
             // Delayed renders to ensure display
             setTimeout(() => {
                 renderer.render(scene, camera);
-                console.log('延时渲染 1 完成');
+                console.log('Delayed render 1 complete');
             }, 10);
             
             setTimeout(() => {
                 renderer.render(scene, camera);
-                console.log('延时渲染 2 完成');
+                console.log('Delayed render 2 complete');
             }, 100);
             
             setTimeout(() => {
                 renderer.render(scene, camera);
-                console.log('延时渲染 3 完成');
+                console.log('Delayed render 3 complete');
                 
                 // Ensure "Show Loaded File" button is visible after data is processed
                 if (gaussianData && gaussianData.length > 0) {
@@ -1202,7 +1202,7 @@
             const total = gaussianData.length;
             
             document.getElementById('stats').innerHTML = `
-                显示: ${totalVisible} / ${total} 个高斯椭球
+                Display: ${totalVisible} / ${total} Gaussian ellipsoids
             `;
             
             const semanticStatsDiv = document.getElementById('semanticStats');
@@ -1325,22 +1325,22 @@
                 // Force multiple renders to ensure display
                 setTimeout(() => {
                     renderer.render(scene, camera);
-                    console.log('第一次强制渲染完成');
+                    console.log('First forced render complete');
                 }, 10);
                 
                 setTimeout(() => {
                     renderer.render(scene, camera);
-                    console.log('第二次强制渲染完成');
+                    console.log('Second forced render complete');
                 }, 50);
                 
                 setTimeout(() => {
                     renderer.render(scene, camera);
-                    console.log('第三次强制渲染完成');
+                    console.log('Third forced render complete');
                 }, 100);
                 
-                showStatus(`重新显示文件，共 ${gaussianData.length} 个高斯椭球`, 'success');
+                showStatus(`Re-displayed file, total ${gaussianData.length} Gaussian ellipsoids`, 'success');
             } else {
-                showStatus('没有加载的文件可以显示', 'error');
+                showStatus('No loaded file to display', 'error');
             }
         }
 
@@ -1349,7 +1349,7 @@
             // Regenerate gaussians with new detail level
             if (gaussianData && gaussianData.length > 0) {
                 createGaussiansFromPLY();
-                showStatus('椭球面数已更新', 'success');
+                showStatus('Ellipsoid face count updated', 'success');
             }
         }
 

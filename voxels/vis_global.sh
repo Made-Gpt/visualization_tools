@@ -38,24 +38,24 @@ PCD_NAMES=("pcd_00004" "pcd_00005" "pcd_00012" "pcd_00018" "pcd_00020"
 
 # Function to display menu and get user choice
 select_scene() {
-    echo "=== 可用场景列表 ==="
+    echo "=== Available Scene List ==="
     for i in "${!PCD_SCENES[@]}"; do  
         echo "$((i+1)). ${PCD_SCENES[i]}"
     done
-    echo "0. 处理所有场景"
+    echo "0. Process all scenes"
     echo "==================="
     
-    read -p "选择场景编号 (0 表示处理所有场景): " scene_choice
+    read -p "Select scene number (0 to process all scenes): " scene_choice
     
     if [ "$scene_choice" = "0" ]; then
-        echo "选择: 处理所有场景"
+        echo "Selected: Process all scenes"
         return 0
     elif [ "$scene_choice" -ge 1 ] && [ "$scene_choice" -le ${#PCD_SCENES[@]} ]; then
         scene_idx=$((scene_choice-1))
-        echo "选择: ${PCD_SCENES[scene_idx]}"
+        echo "Selected: ${PCD_SCENES[scene_idx]}"
         return $scene_idx
     else
-        echo "无效的选择，退出"
+        echo "Invalid selection, exiting"
         exit 1
     fi
 }

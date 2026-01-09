@@ -17,7 +17,7 @@ ENTROPY_HIGH=1.0                           # Maximum entropy threshold
 OPACITY_THRES=0.01                         # Opacity threshold
 
 # Confidence computation parameters
-CONFIDENCE_METHOD="power"                # 置信度计算方法: exp, sigmoid, power
+CONFIDENCE_METHOD="power"                # Confidence calculation method: exp, sigmoid, power
  
 # Save gaussians flags
 SAVE_FILTERED=false                        # Set to true to enable filtering and save filtered PLY file

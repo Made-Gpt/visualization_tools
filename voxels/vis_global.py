@@ -109,8 +109,8 @@ def concatenate_frames_progressively(pcd_root, pcd_fold, pcd_scene, pcd_names, p
         successful_frames.append(frame_name)
         
         # Save current accumulated result
-        # 使用当前帧名作为输出文件名（表示累积到这一帧）
-        output_name = frame_name  # 改为使用帧名
+        # Use current frame name as output filename (indicates accumulation up to this frame)
+        output_name = frame_name  # Changed to use frame name
         output_path = output_dir / (output_name + pcd_ext)
         
         success = save_point_cloud(accumulated_points, accumulated_colors, output_path)
